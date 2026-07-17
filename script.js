@@ -186,8 +186,15 @@ function updateStaticLabels() {
 }
 
 // ── Data loading ──────────────────────────────────────────────────────────────
+var DATA_URL = 'data/current-prices.json';
+
+// Avoid showing stale pricing data after the JSON file is updated on the server.
+function getDataUrl() {
+  return DATA_URL + '?v=' + Date.now();
+}
+
 function loadData() {
-  fetch('data/current-prices.json')
+  fetch(getDataUrl(), { cache: 'no-store' })
     .then(function (resp) {
       if (!resp.ok) throw new Error('HTTP ' + resp.status);
       return resp.json();
