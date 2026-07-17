@@ -1,0 +1,128 @@
+{
+  "lastUpdated": "2026-07-14 11:30 AST",
+  "announcement": {
+    "zhHans": "以下价格为当前价格参考，最终价格以下单前确认为准。",
+    "zhHant": "以下價格為當前價格參考，最終價格以下單前確認為準。",
+    "en": "The following prices are current price indications. Final confirmation is required before order placement."
+  },
+  "contacts": {
+    "wechat": "ACS_live_lobster",
+    "email": "sales@example.com",
+    "phone": "+1 000 000 0000"
+  },
+  "prices": [
+    {
+      "size": "0.70–1.00 lb",
+      "cadPerLb": "CAD $1.00",
+      "usdPerLb": "USD $0.00",
+      "rmbPerKg": "RMB ¥0.00",
+      "status": "Available",
+      "note": {
+        "zhHans": "示例价格",
+        "zhHant": "示例價格",
+        "en": "Sample price"
+      }
+    },
+    {
+      "size": "1.00–1.15 lb",
+      "cadPerLb": "CAD $0.00",
+      "usdPerLb": "USD $0.00",
+      "rmbPerKg": "RMB ¥0.00",
+      "status": "Limited",
+      "note": {
+        "zhHans": "供应有限",
+        "zhHant": "供應有限",
+        "en": "Limited supply"
+      }
+    },
+    {
+      "size": "1.15–1.25 lb",
+      "cadPerLb": "CAD $0.00",
+      "usdPerLb": "USD $0.00",
+      "rmbPerKg": "RMB ¥0.00",
+      "status": "Contact Sales First",
+      "note": {
+        "zhHans": "请先联系销售确认",
+        "zhHant": "請先聯絡銷售確認",
+        "en": "Please confirm with sales first"
+      }
+    },
+    {
+      "size": "1.25–1.50 lb",
+      "cadPerLb": "CAD $0.00",
+      "usdPerLb": "USD $0.00",
+      "rmbPerKg": "RMB ¥0.00",
+      "status": "Available",
+      "note": {
+        "zhHans": "示例价格",
+        "zhHant": "示例價格",
+        "en": "Sample price"
+      }
+    },
+    {
+      "size": "1.50–2.00 lb",
+      "cadPerLb": "CAD $0.00",
+      "usdPerLb": "USD $0.00",
+      "rmbPerKg": "RMB ¥0.00",
+      "status": "Pre-order Only",
+      "note": {
+        "zhHans": "需提前预订",
+        "zhHant": "需提前預訂",
+        "en": "Advance booking required"
+      }
+    },
+    {
+      "size": "2.00 lb+",
+      "cadPerLb": "CAD $0.00",
+      "usdPerLb": "USD $0.00",
+      "rmbPerKg": "RMB ¥0.00",
+      "status": "Sold Out",
+      "note": {
+        "zhHans": "暂时售罄",
+        "zhHant": "暫時售罄",
+        "en": "Currently sold out"
+      }
+    }
+  ],
+  "cnfAddOns": [
+    {
+      "region": {
+        "zhHans": "中国大陆",
+        "zhHant": "中國大陸",
+        "en": "Mainland China"
+      },
+      "addOn": "TBD",
+      "note": {
+        "zhHans": "根据航班和物流情况确认",
+        "zhHant": "根據航班和物流情況確認",
+        "en": "Subject to flight and logistics confirmation"
+      }
+    },
+    {
+      "region": {
+        "zhHans": "台湾",
+        "zhHant": "台灣",
+        "en": "Taiwan"
+      },
+      "addOn": "TBD",
+      "note": {
+        "zhHans": "根据航班和物流情况确认",
+        "zhHant": "根據航班和物流情況確認",
+        "en": "Subject to flight and logistics confirmation"
+      }
+    },
+    {
+      "region": {
+        "zhHans": "香港",
+        "zhHant": "香港",
+        "en": "Hong Kong"
+      },
+      "addOn": "TBD",
+      "note": {
+        "zhHans": "根据航班和物流情况确认",
+        "zhHant": "根據航班和物流情況確認",
+        "en": "Subject to flight and logistics confirmation"
+      }
+    }
+  ]
+}
