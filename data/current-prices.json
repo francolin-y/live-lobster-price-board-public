@@ -1,6 +1,24 @@
 {
   "dataStatus": "sample",
   "lastUpdated": "2026-07-14 12:00 AST",
+  "dataNotes": {
+    "forAdmin": "Internal note: update price fields as display-ready strings. Example: CAD $10.50/lb, USD $7.65/lb, RMB ¥118/kg. Keep TBD if price is not ready for publication."
+  },
+  "priceDisplayRules": {
+    "cadPerLb": "Display-ready string. Example: CAD $10.50/lb",
+    "usdPerLb": "Display-ready string. Example: USD $7.65/lb",
+    "rmbPerKg": "Display-ready string. Example: RMB ¥118/kg",
+    "tbd": "Use TBD when the price is not ready to publish."
+  },
+  "liveSwitchChecklist": [
+    "Replace TBD prices with approved live values.",
+    "Update lastUpdated to current Atlantic time.",
+    "Update contacts with approved public contact details.",
+    "Review CNF add-on notes.",
+    "Set dataStatus from sample to live.",
+    "Upload only data/current-prices.json to the Plesk server.",
+    "Verify the public page in desktop, mobile, WeChat browser, and Mainland China network."
+  ],
   "announcement": {
     "zhHans": "以下为当前价格参考页面。实际成交价格会根据规格、数量、目的地、航班、物流安排和市场情况确认。",
     "zhHant": "以下為當前價格參考頁面。實際成交價格會根據規格、數量、目的地、航班、物流安排和市場情況確認。",
