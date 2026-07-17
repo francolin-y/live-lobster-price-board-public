@@ -1,91 +1,84 @@
 {
-  "lastUpdated": "2026-07-14 11:30 AST",
+  "dataStatus": "sample",
+  "lastUpdated": "2026-07-17",
   "announcement": {
     "zhHans": "以下价格为当前价格参考，最终价格以下单前确认为准。",
     "zhHant": "以下價格為當前價格參考，最終價格以下單前確認為準。",
     "en": "The following prices are current price indications. Final confirmation is required before order placement."
   },
   "contacts": {
-    "wechat": "ACS_live_lobster",
-    "email": "sales@example.com",
-    "phone": "+1 000 000 0000"
+    "wechat": "TBD",
+    "email": "TBD",
+    "phone": "TBD"
   },
   "prices": [
     {
+      "id": "s070-100",
       "size": "0.70–1.00 lb",
-      "cadPerLb": "CAD $1.00",
-      "usdPerLb": "USD $0.00",
-      "rmbPerKg": "RMB ¥0.00",
+      "cadPerLb": "TBD",
+      "usdPerLb": "TBD",
+      "rmbPerKg": "TBD",
       "status": "Available",
-      "note": {
-        "zhHans": "示例价格",
-        "zhHant": "示例價格",
-        "en": "Sample price"
-      }
+      "note": { "zhHans": "", "zhHant": "", "en": "" }
     },
     {
+      "id": "s100-115",
       "size": "1.00–1.15 lb",
-      "cadPerLb": "CAD $0.00",
-      "usdPerLb": "USD $0.00",
-      "rmbPerKg": "RMB ¥0.00",
-      "status": "Limited",
-      "note": {
-        "zhHans": "供应有限",
-        "zhHant": "供應有限",
-        "en": "Limited supply"
-      }
-    },
-    {
-      "size": "1.15–1.25 lb",
-      "cadPerLb": "CAD $0.00",
-      "usdPerLb": "USD $0.00",
-      "rmbPerKg": "RMB ¥0.00",
-      "status": "Contact Sales First",
-      "note": {
-        "zhHans": "请先联系销售确认",
-        "zhHant": "請先聯絡銷售確認",
-        "en": "Please confirm with sales first"
-      }
-    },
-    {
-      "size": "1.25–1.50 lb",
-      "cadPerLb": "CAD $0.00",
-      "usdPerLb": "USD $0.00",
-      "rmbPerKg": "RMB ¥0.00",
+      "cadPerLb": "TBD",
+      "usdPerLb": "TBD",
+      "rmbPerKg": "TBD",
       "status": "Available",
-      "note": {
-        "zhHans": "示例价格",
-        "zhHant": "示例價格",
-        "en": "Sample price"
-      }
+      "note": { "zhHans": "", "zhHant": "", "en": "" }
     },
     {
-      "size": "1.50–2.00 lb",
-      "cadPerLb": "CAD $0.00",
-      "usdPerLb": "USD $0.00",
-      "rmbPerKg": "RMB ¥0.00",
-      "status": "Pre-order Only",
-      "note": {
-        "zhHans": "需提前预订",
-        "zhHant": "需提前預訂",
-        "en": "Advance booking required"
-      }
+      "id": "s115-125",
+      "size": "1.15–1.25 lb",
+      "cadPerLb": "TBD",
+      "usdPerLb": "TBD",
+      "rmbPerKg": "TBD",
+      "status": "Available",
+      "note": { "zhHans": "", "zhHant": "", "en": "" }
     },
     {
+      "id": "s125-150",
+      "size": "1.25–1.50 lb",
+      "cadPerLb": "TBD",
+      "usdPerLb": "TBD",
+      "rmbPerKg": "TBD",
+      "status": "Available",
+      "note": { "zhHans": "", "zhHant": "", "en": "" }
+    },
+    {
+      "id": "s150-175",
+      "size": "1.50–1.75 lb",
+      "cadPerLb": "TBD",
+      "usdPerLb": "TBD",
+      "rmbPerKg": "TBD",
+      "status": "Contact Sales First",
+      "note": { "zhHans": "", "zhHant": "", "en": "" }
+    },
+    {
+      "id": "s175-200",
+      "size": "1.75–2.00 lb",
+      "cadPerLb": "TBD",
+      "usdPerLb": "TBD",
+      "rmbPerKg": "TBD",
+      "status": "Contact Sales First",
+      "note": { "zhHans": "", "zhHant": "", "en": "" }
+    },
+    {
+      "id": "s200plus",
       "size": "2.00 lb+",
-      "cadPerLb": "CAD $0.00",
-      "usdPerLb": "USD $0.00",
-      "rmbPerKg": "RMB ¥0.00",
-      "status": "Sold Out",
-      "note": {
-        "zhHans": "暂时售罄",
-        "zhHant": "暫時售罄",
-        "en": "Currently sold out"
-      }
+      "cadPerLb": "TBD",
+      "usdPerLb": "TBD",
+      "rmbPerKg": "TBD",
+      "status": "Pre-order Only",
+      "note": { "zhHans": "", "zhHant": "", "en": "" }
     }
   ],
   "cnfAddOns": [
     {
+      "id": "cnf-mainland-china",
       "region": {
         "zhHans": "中国大陆",
         "zhHant": "中國大陸",
@@ -99,6 +92,7 @@
       }
     },
     {
+      "id": "cnf-taiwan",
       "region": {
         "zhHans": "台湾",
         "zhHant": "台灣",
@@ -112,16 +106,45 @@
       }
     },
     {
+      "id": "cnf-north-america",
       "region": {
-        "zhHans": "香港",
-        "zhHant": "香港",
-        "en": "Hong Kong"
+        "zhHans": "北美",
+        "zhHant": "北美",
+        "en": "North America"
+      },
+      "addOn": "TBD",
+      "note": {
+        "zhHans": "根据实际运输情况确认",
+        "zhHant": "根據實際運輸情況確認",
+        "en": "Subject to actual shipping arrangements"
+      }
+    },
+    {
+      "id": "cnf-japan-korea",
+      "region": {
+        "zhHans": "日本 / 韩国",
+        "zhHant": "日本 / 韓國",
+        "en": "Japan / Korea"
       },
       "addOn": "TBD",
       "note": {
         "zhHans": "根据航班和物流情况确认",
         "zhHant": "根據航班和物流情況確認",
         "en": "Subject to flight and logistics confirmation"
+      }
+    },
+    {
+      "id": "cnf-other",
+      "region": {
+        "zhHans": "其他地区",
+        "zhHant": "其他地區",
+        "en": "Other Markets"
+      },
+      "addOn": "TBD",
+      "note": {
+        "zhHans": "请联系我们确认",
+        "zhHant": "請聯絡我們確認",
+        "en": "Please contact us to confirm"
       }
     }
   ]

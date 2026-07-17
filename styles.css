@@ -297,6 +297,18 @@ body {
   pointer-events: none;
 }
 
+/* ── Sample data banner ─────────────────────────────────────────────────── */
+.sample-banner {
+  background: var(--amber-bg);
+  border: 1px solid #fcd34d;
+  border-left: 4px solid #d97706;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--amber);
+  line-height: 1.6;
+}
+
 /* ── Quote Template section ─────────────────────────────────────────────── */
 .quote-helper {
   font-size: 13px;

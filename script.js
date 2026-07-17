@@ -29,12 +29,13 @@ var I18N = {
     quoteHelper:   '复制以下模板后，通过 WeChat、Email 或电话联系我们。',
     quoteTemplate: '姓名：\n公司名：\n所属地区：\n产品尺寸：\n需求量：\nWeChat / LINE / Phone / Email：\n备注：',
     quoteCopy:     '复制询价模板',
+    sampleBanner: '当前为测试数据，正式价格请以下单前确认为准。',
     disclaimer:   '价格会受供应情况、规格、数量、目的地、物流安排和市场情况影响。下单前需以最终确认为准。',
     loadError:    '价格数据加载失败，请稍后刷新页面，或直接通过以下方式联系我们。',
     status: {
-      'Available':           '有货',
+      'Available':           '可供应',
       'Limited':             '供应有限',
-      'Sold Out':            '售罄',
+      'Sold Out':            '已售罄',
       'Contact Sales First': '请先联系销售',
       'Pre-order Only':      '仅接受预订',
     },
@@ -66,12 +67,13 @@ var I18N = {
     quoteHelper:   '複製以下模板後，透過 WeChat、Email 或電話聯絡我們。',
     quoteTemplate: '姓名：\n公司名：\n所屬地區：\n產品尺寸：\n需求量：\nWeChat / LINE / Phone / Email：\n備註：',
     quoteCopy:     '複製詢價模板',
+    sampleBanner: '目前為測試資料，正式價格請以下單前確認為準。',
     disclaimer:   '價格會受供應情況、規格、數量、目的地、物流安排和市場情況影響。下單前需以最終確認為準。',
     loadError:    '價格數據載入失敗，請稍後重新整理頁面，或直接透過以下方式聯絡我們。',
     status: {
-      'Available':           '有貨',
+      'Available':           '可供應',
       'Limited':             '供應有限',
-      'Sold Out':            '售罄',
+      'Sold Out':            '已售罄',
       'Contact Sales First': '請先聯絡銷售',
       'Pre-order Only':      '僅接受預訂',
     },
@@ -103,6 +105,7 @@ var I18N = {
     quoteHelper:   'Copy the template below and contact us by WeChat, email, or phone.',
     quoteTemplate: 'Name:\nCompany:\nRegion:\nProduct Size:\nQuantity:\nWeChat / LINE / Phone / Email:\nMessage:',
     quoteCopy:     'Copy Request Template',
+    sampleBanner: 'This page currently uses sample data. Final pricing must be confirmed before order placement.',
     disclaimer:   'Prices are subject to availability, size, volume, destination, logistics, and market conditions. Final confirmation is required before order placement.',
     loadError:    'Failed to load price data. Please refresh the page later or contact us directly.',
     status: {
@@ -205,6 +208,7 @@ function renderPage(data) {
   var lk = LANG_KEY[currentLang];
 
   updateStaticLabels();
+  renderSampleBanner(data, t);
   renderLastUpdated(data, t);
   renderAnnouncement(data, t, lk);
   renderPriceTable(data, t, lk);
@@ -220,6 +224,17 @@ function renderPage(data) {
 }
 
 // ── Section renderers ─────────────────────────────────────────────────────────
+function renderSampleBanner(data, t) {
+  var banner = document.getElementById('sample-banner');
+  if (!banner) return;
+  if (data.dataStatus === 'sample') {
+    banner.textContent = t.sampleBanner;
+    banner.removeAttribute('hidden');
+  } else {
+    banner.setAttribute('hidden', '');
+  }
+}
+
 function renderLastUpdated(data, t) {
   setText('last-updated', t.lastUpdated + ': ' + (data.lastUpdated || '—'));
 }
