@@ -1,15 +1,15 @@
 {
   "dataStatus": "sample",
-  "lastUpdated": "2026-07-17",
+  "lastUpdated": "2026-07-14 12:00 AST",
   "announcement": {
-    "zhHans": "以下价格为当前价格参考，最终价格以下单前确认为准。",
-    "zhHant": "以下價格為當前價格參考，最終價格以下單前確認為準。",
-    "en": "The following prices are current price indications. Final confirmation is required before order placement."
+    "zhHans": "以下为当前价格参考页面。实际成交价格会根据规格、数量、目的地、航班、物流安排和市场情况确认。",
+    "zhHant": "以下為當前價格參考頁面。實際成交價格會根據規格、數量、目的地、航班、物流安排和市場情況確認。",
+    "en": "This page provides current price indications. Final pricing depends on size, volume, destination, flight availability, logistics, and market conditions."
   },
   "contacts": {
-    "wechat": "TBD",
-    "email": "TBD",
-    "phone": "TBD"
+    "wechat": "franco_lyh",
+    "email": "franco@chslwildbynature.com",
+    "phone": "17702183506 / 4168017660"
   },
   "prices": [
     {
@@ -19,7 +19,11 @@
       "usdPerLb": "TBD",
       "rmbPerKg": "TBD",
       "status": "Available",
-      "note": { "zhHans": "", "zhHant": "", "en": "" }
+      "note": {
+        "zhHans": "供应状态请以下单前确认为准",
+        "zhHant": "供應狀態請以下單前確認為準",
+        "en": "Availability to be confirmed before order placement"
+      }
     },
     {
       "id": "s100-115",
@@ -28,7 +32,11 @@
       "usdPerLb": "TBD",
       "rmbPerKg": "TBD",
       "status": "Available",
-      "note": { "zhHans": "", "zhHant": "", "en": "" }
+      "note": {
+        "zhHans": "供应状态请以下单前确认为准",
+        "zhHant": "供應狀態請以下單前確認為準",
+        "en": "Availability to be confirmed before order placement"
+      }
     },
     {
       "id": "s115-125",
@@ -37,7 +45,11 @@
       "usdPerLb": "TBD",
       "rmbPerKg": "TBD",
       "status": "Available",
-      "note": { "zhHans": "", "zhHant": "", "en": "" }
+      "note": {
+        "zhHans": "供应状态请以下单前确认为准",
+        "zhHant": "供應狀態請以下單前確認為準",
+        "en": "Availability to be confirmed before order placement"
+      }
     },
     {
       "id": "s125-150",
@@ -45,8 +57,12 @@
       "cadPerLb": "TBD",
       "usdPerLb": "TBD",
       "rmbPerKg": "TBD",
-      "status": "Available",
-      "note": { "zhHans": "", "zhHant": "", "en": "" }
+      "status": "Limited",
+      "note": {
+        "zhHans": "供应有限，请先联系销售确认",
+        "zhHant": "供應有限，請先聯絡銷售確認",
+        "en": "Limited supply. Please confirm with sales first"
+      }
     },
     {
       "id": "s150-175",
@@ -55,7 +71,11 @@
       "usdPerLb": "TBD",
       "rmbPerKg": "TBD",
       "status": "Contact Sales First",
-      "note": { "zhHans": "", "zhHant": "", "en": "" }
+      "note": {
+        "zhHans": "请先联系销售确认价格和供应",
+        "zhHant": "請先聯絡銷售確認價格和供應",
+        "en": "Please contact sales first to confirm pricing and availability"
+      }
     },
     {
       "id": "s175-200",
@@ -64,7 +84,11 @@
       "usdPerLb": "TBD",
       "rmbPerKg": "TBD",
       "status": "Contact Sales First",
-      "note": { "zhHans": "", "zhHant": "", "en": "" }
+      "note": {
+        "zhHans": "请先联系销售确认价格和供应",
+        "zhHant": "請先聯絡銷售確認價格和供應",
+        "en": "Please contact sales first to confirm pricing and availability"
+      }
     },
     {
       "id": "s200plus",
@@ -73,7 +97,11 @@
       "usdPerLb": "TBD",
       "rmbPerKg": "TBD",
       "status": "Pre-order Only",
-      "note": { "zhHans": "", "zhHant": "", "en": "" }
+      "note": {
+        "zhHans": "请先联系销售确认价格和供应",
+        "zhHant": "請先聯絡銷售確認價格和供應",
+        "en": "Please contact sales first to confirm pricing and availability"
+      }
     }
   ],
   "cnfAddOns": [
@@ -86,9 +114,9 @@
       },
       "addOn": "TBD",
       "note": {
-        "zhHans": "根据航班和物流情况确认",
-        "zhHant": "根據航班和物流情況確認",
-        "en": "Subject to flight and logistics confirmation"
+        "zhHans": "根据目的地、航班、物流安排和数量确认",
+        "zhHant": "根據目的地、航班、物流安排和數量確認",
+        "en": "Subject to destination, flight availability, logistics, and volume"
       }
     },
     {
@@ -100,9 +128,9 @@
       },
       "addOn": "TBD",
       "note": {
-        "zhHans": "根据航班和物流情况确认",
-        "zhHant": "根據航班和物流情況確認",
-        "en": "Subject to flight and logistics confirmation"
+        "zhHans": "根据目的地、航班、物流安排和数量确认",
+        "zhHant": "根據目的地、航班、物流安排和數量確認",
+        "en": "Subject to destination, flight availability, logistics, and volume"
       }
     },
     {
@@ -114,9 +142,9 @@
       },
       "addOn": "TBD",
       "note": {
-        "zhHans": "根据实际运输情况确认",
-        "zhHant": "根據實際運輸情況確認",
-        "en": "Subject to actual shipping arrangements"
+        "zhHans": "根据目的地、航班、物流安排和数量确认",
+        "zhHant": "根據目的地、航班、物流安排和數量確認",
+        "en": "Subject to destination, flight availability, logistics, and volume"
       }
     },
     {
@@ -128,9 +156,9 @@
       },
       "addOn": "TBD",
       "note": {
-        "zhHans": "根据航班和物流情况确认",
-        "zhHant": "根據航班和物流情況確認",
-        "en": "Subject to flight and logistics confirmation"
+        "zhHans": "根据目的地、航班、物流安排和数量确认",
+        "zhHant": "根據目的地、航班、物流安排和數量確認",
+        "en": "Subject to destination, flight availability, logistics, and volume"
       }
     },
     {
@@ -142,10 +170,15 @@
       },
       "addOn": "TBD",
       "note": {
-        "zhHans": "请联系我们确认",
-        "zhHant": "請聯絡我們確認",
-        "en": "Please contact us to confirm"
+        "zhHans": "根据目的地、航班、物流安排和数量确认",
+        "zhHant": "根據目的地、航班、物流安排和數量確認",
+        "en": "Subject to destination, flight availability, logistics, and volume"
       }
     }
-  ]
+  ],
+  "disclaimer": {
+    "en": "Prices are subject to availability, size, volume, destination, logistics, and market conditions. Final confirmation is required before order placement.",
+    "zhHans": "价格会受供应情况、规格、数量、目的地、物流安排和市场情况影响。下单前需以最终确认为准。",
+    "zhHant": "價格會受供應情況、規格、數量、目的地、物流安排和市場情況影響。下單前需以最終確認為準。"
+  }
 }
