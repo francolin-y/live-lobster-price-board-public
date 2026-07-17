@@ -25,6 +25,10 @@ var I18N = {
     phone:        '电话',
     copy:         '复制',
     copied:       '已复制',
+    quoteTitle:    '询价模板',
+    quoteHelper:   '复制以下模板后，通过 WeChat、Email 或电话联系我们。',
+    quoteTemplate: '姓名：\n公司名：\n所属地区：\n产品尺寸：\n需求量：\nWeChat / LINE / Phone / Email：\n备注：',
+    quoteCopy:     '复制询价模板',
     disclaimer:   '价格会受供应情况、规格、数量、目的地、物流安排和市场情况影响。下单前需以最终确认为准。',
     loadError:    '价格数据加载失败，请稍后刷新页面，或直接通过以下方式联系我们。',
     status: {
@@ -58,6 +62,10 @@ var I18N = {
     phone:        '電話',
     copy:         '複製',
     copied:       '已複製',
+    quoteTitle:    '詢價模板',
+    quoteHelper:   '複製以下模板後，透過 WeChat、Email 或電話聯絡我們。',
+    quoteTemplate: '姓名：\n公司名：\n所屬地區：\n產品尺寸：\n需求量：\nWeChat / LINE / Phone / Email：\n備註：',
+    quoteCopy:     '複製詢價模板',
     disclaimer:   '價格會受供應情況、規格、數量、目的地、物流安排和市場情況影響。下單前需以最終確認為準。',
     loadError:    '價格數據載入失敗，請稍後重新整理頁面，或直接透過以下方式聯絡我們。',
     status: {
@@ -91,6 +99,10 @@ var I18N = {
     phone:        'Phone',
     copy:         'Copy',
     copied:       'Copied!',
+    quoteTitle:    'Request Quote Template',
+    quoteHelper:   'Copy the template below and contact us by WeChat, email, or phone.',
+    quoteTemplate: 'Name:\nCompany:\nRegion:\nProduct Size:\nQuantity:\nWeChat / LINE / Phone / Email:\nMessage:',
+    quoteCopy:     'Copy Request Template',
     disclaimer:   'Prices are subject to availability, size, volume, destination, logistics, and market conditions. Final confirmation is required before order placement.',
     loadError:    'Failed to load price data. Please refresh the page later or contact us directly.',
     status: {
@@ -198,6 +210,7 @@ function renderPage(data) {
   renderPriceTable(data, t, lk);
   renderCnfTable(data, t, lk);
   renderContacts(data, t);
+  renderQuoteTemplate(t);
   renderDisclaimer(t);
 
   // Reveal all content sections and clear the loading / error messages
@@ -308,6 +321,18 @@ function renderContacts(data, t) {
     row.appendChild(btn);
     list.appendChild(row);
   });
+}
+
+function renderQuoteTemplate(t) {
+  setText('quote-title',    t.quoteTitle);
+  setText('quote-helper',   t.quoteHelper);
+  setText('quote-template', t.quoteTemplate);
+  var btn = document.getElementById('quote-copy-btn');
+  if (!btn) return;
+  btn.textContent = t.quoteCopy;
+  btn.onclick = function () {
+    copyToClipboard(t.quoteTemplate, btn, t.copied, t.quoteCopy);
+  };
 }
 
 function renderDisclaimer(t) {
