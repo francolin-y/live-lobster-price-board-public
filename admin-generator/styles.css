@@ -323,6 +323,41 @@ textarea {
   border: 1px solid #374151;
 }
 
+/* ── Validation panel ── */
+.vp-status {
+  padding: 10px 14px;
+  border-radius: 5px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.vp-status.passed {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #15803d;
+}
+.vp-status.has-errors {
+  background: #fde8e8;
+  border: 1px solid #f87171;
+  color: #b91c1c;
+}
+.vp-list {
+  margin: 8px 0 0 18px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.vp-list li { margin-bottom: 2px; }
+.vp-errors  { color: #7f1d1d; }
+.vp-warning-header {
+  font-size: 11px;
+  font-weight: 700;
+  color: #92400e;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 12px;
+  margin-bottom: 4px;
+}
+.vp-warnings { color: #92400e; }
+
 /* ── Responsive ── */
 @media (max-width: 640px) {
   .field-row { grid-template-columns: 1fr; }

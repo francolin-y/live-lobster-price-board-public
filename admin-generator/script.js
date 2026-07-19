@@ -19,12 +19,34 @@ function showError(msg) {
   b.classList.add('visible');
 }
 
-function setValidationError(msgs) {
-  const e = el('validation-error');
-  if (!msgs || msgs.length === 0) { e.classList.remove('visible'); return; }
-  e.innerHTML = '<strong>Cannot export — fix these issues first:</strong><ul>' +
-    msgs.map(m => `<li>${m}</li>`).join('') + '</ul>';
-  e.classList.add('visible');
+function renderValidationPanel(errors, warnings) {
+  const body = el('validation-panel-body');
+  if (body) {
+    const hasErrors   = errors.length > 0;
+    const hasWarnings = warnings.length > 0;
+    let html = '';
+    if (!hasErrors) {
+      html += '<div class="vp-status passed">&#10003; Validation passed</div>';
+    } else {
+      html += `<div class="vp-status has-errors">&#10007; ${errors.length} validation error${errors.length !== 1 ? 's' : ''} — export blocked</div>`;
+      html += '<ul class="vp-list vp-errors">' + errors.map(m => `<li>${esc(m)}</li>`).join('') + '</ul>';
+    }
+    if (hasWarnings) {
+      html += '<div class="vp-warning-header">Warnings</div>';
+      html += '<ul class="vp-list vp-warnings">' + warnings.map(m => `<li>${esc(m)}</li>`).join('') + '</ul>';
+    }
+    body.innerHTML = html;
+  }
+
+  const blocked = el('validation-error');
+  if (blocked) {
+    if (errors.length > 0) {
+      blocked.textContent = 'Export blocked. Please fix validation errors first.';
+      blocked.classList.add('visible');
+    } else {
+      blocked.classList.remove('visible');
+    }
+  }
 }
 
 // ── Load ───────────────────────────────────────────────────────────────────
@@ -406,23 +428,132 @@ function buildJSON() {
 
 // ── Validate ───────────────────────────────────────────────────────────────
 function validate(obj) {
-  const errors = [];
-  if (!obj.dataStatus)               errors.push('dataStatus is empty.');
-  if (!obj.lastUpdated)              errors.push('lastUpdated is empty.');
-  if (!obj.contacts)                 errors.push('contacts block is missing.');
-  if (!obj.prices || obj.prices.length === 0) errors.push('prices array is empty — add at least one row.');
-  if (!obj.cnfAddOns)                errors.push('cnfAddOns block is missing.');
-  return errors;
+  const errors   = [];
+  const warnings = [];
+
+  // Top-level
+  if (!obj.dataStatus || !['sample', 'live'].includes(obj.dataStatus)) {
+    errors.push('dataStatus must be "sample" or "live".');
+  }
+  if (!obj.lastUpdated) {
+    errors.push('lastUpdated must not be empty.');
+  }
+  if (!obj.contacts) {
+    errors.push('contacts block is missing.');
+  }
+  if (!Array.isArray(obj.prices) || obj.prices.length === 0) {
+    errors.push('prices must be a non-empty array.');
+  }
+  if (!Array.isArray(obj.cnfAddOns)) {
+    errors.push('cnfAddOns must be an array.');
+  }
+
+  // Contacts
+  if (obj.contacts) {
+    if (!obj.contacts.wechat) errors.push('contacts.wechat must not be empty (use TBD if unknown).');
+    if (!obj.contacts.email)  errors.push('contacts.email must not be empty (use TBD if unknown).');
+    if (!obj.contacts.phone)  errors.push('contacts.phone must not be empty (use TBD if unknown).');
+  }
+
+  // Price rows
+  if (Array.isArray(obj.prices) && obj.prices.length > 0) {
+    const seenIds = new Set();
+    obj.prices.forEach((row, idx) => {
+      const n   = idx + 1;
+      const ref = row.id ? `"${row.id}"` : `row ${n}`;
+      if (!row.id) {
+        errors.push(`Price row ${n}: id must not be empty.`);
+      } else if (seenIds.has(row.id)) {
+        errors.push(`Price row ${n}: id "${row.id}" is duplicated.`);
+      } else {
+        seenIds.add(row.id);
+      }
+      if (!row.size)     errors.push(`Price ${ref}: size must not be empty.`);
+      if (!row.cadPerLb) errors.push(`Price ${ref}: cadPerLb must not be empty.`);
+      if (!row.usdPerLb) errors.push(`Price ${ref}: usdPerLb must not be empty.`);
+      if (!row.rmbPerKg) errors.push(`Price ${ref}: rmbPerKg must not be empty.`);
+      if (!STATUS_OPTIONS.includes(row.status)) {
+        errors.push(`Price ${ref}: status "${row.status}" is not a valid value.`);
+      }
+      if (!row.note) {
+        errors.push(`Price ${ref}: note block is missing.`);
+      } else {
+        if (!row.note.zhHans) errors.push(`Price ${ref}: note.zhHans must not be empty.`);
+        if (!row.note.zhHant) errors.push(`Price ${ref}: note.zhHant must not be empty.`);
+        if (!row.note.en)     errors.push(`Price ${ref}: note.en must not be empty.`);
+      }
+    });
+  }
+
+  // CNF rows
+  if (Array.isArray(obj.cnfAddOns) && obj.cnfAddOns.length > 0) {
+    const seenIds = new Set();
+    obj.cnfAddOns.forEach((row, idx) => {
+      const n   = idx + 1;
+      const ref = row.id ? `"${row.id}"` : `row ${n}`;
+      if (!row.id) {
+        errors.push(`CNF row ${n}: id must not be empty.`);
+      } else if (seenIds.has(row.id)) {
+        errors.push(`CNF row ${n}: id "${row.id}" is duplicated.`);
+      } else {
+        seenIds.add(row.id);
+      }
+      if (!row.addOn) errors.push(`CNF ${ref}: addOn must not be empty.`);
+      if (!row.region) {
+        errors.push(`CNF ${ref}: region block is missing.`);
+      } else {
+        if (!row.region.zhHans) errors.push(`CNF ${ref}: region.zhHans must not be empty.`);
+        if (!row.region.zhHant) errors.push(`CNF ${ref}: region.zhHant must not be empty.`);
+        if (!row.region.en)     errors.push(`CNF ${ref}: region.en must not be empty.`);
+      }
+      if (!row.note) {
+        errors.push(`CNF ${ref}: note block is missing.`);
+      } else {
+        if (!row.note.zhHans) errors.push(`CNF ${ref}: note.zhHans must not be empty.`);
+        if (!row.note.zhHant) errors.push(`CNF ${ref}: note.zhHant must not be empty.`);
+        if (!row.note.en)     errors.push(`CNF ${ref}: note.en must not be empty.`);
+      }
+    });
+  }
+
+  // Warnings
+  const isLive = obj.dataStatus === 'live';
+  if (obj.dataStatus === 'sample') {
+    warnings.push('dataStatus is sample. The public page will show the sample data banner.');
+  }
+
+  const hasTBDPrice = Array.isArray(obj.prices) && obj.prices.some(r =>
+    r.cadPerLb === 'TBD' || r.usdPerLb === 'TBD' || r.rmbPerKg === 'TBD'
+  );
+  if (hasTBDPrice) {
+    warnings.push(isLive
+      ? 'Live data contains TBD price fields. Confirm before publishing.'
+      : 'Some price fields are still TBD.'
+    );
+  }
+
+  const hasTBDContact = obj.contacts && (
+    obj.contacts.wechat === 'TBD' ||
+    obj.contacts.email  === 'TBD' ||
+    obj.contacts.phone  === 'TBD'
+  );
+  if (hasTBDContact) {
+    warnings.push('Some contact fields are still TBD.');
+  }
+
+  return { errors, warnings };
 }
 
-// ── Preview ────────────────────────────────────────────────────────────────
+// ── Preview + live validation ──────────────────────────────────────────────
 function updatePreview() {
   const preview = el('json-preview');
-  if (!preview) return;
   try {
-    preview.textContent = JSON.stringify(buildJSON(), null, 2);
+    const obj = buildJSON();
+    if (preview) preview.textContent = JSON.stringify(obj, null, 2);
+    const { errors, warnings } = validate(obj);
+    renderValidationPanel(errors, warnings);
   } catch (e) {
-    preview.textContent = '(error building preview)';
+    if (preview) preview.textContent = '(error building preview)';
   }
 }
 
@@ -436,15 +567,13 @@ function togglePreview() {
 // ── Export ─────────────────────────────────────────────────────────────────
 function exportJSON() {
   const obj = buildJSON();
-  const errors = validate(obj);
+  const { errors, warnings } = validate(obj);
+  renderValidationPanel(errors, warnings);
 
   if (errors.length > 0) {
-    setValidationError(errors);
-    el('validation-error').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    el('validation-panel-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     return;
   }
-
-  setValidationError([]);
 
   const json  = JSON.stringify(obj, null, 2);
   const blob  = new Blob([json], { type: 'application/json' });
