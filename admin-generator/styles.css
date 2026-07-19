@@ -1,0 +1,330 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  background: #f0f2f5;
+  color: #1a1a2e;
+  line-height: 1.5;
+}
+
+/* ── Layout ── */
+.page-wrapper {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 16px 60px;
+}
+
+/* ── Warning banner ── */
+.warning-banner {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-left: 4px solid #ffc107;
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin-bottom: 24px;
+  font-size: 13px;
+  color: #664d03;
+}
+
+/* ── Page title ── */
+h1 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0d1b4b;
+  margin-bottom: 4px;
+}
+.subtitle {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 24px;
+}
+
+/* ── Error banner ── */
+#error-banner {
+  background: #fde8e8;
+  border: 1px solid #f87171;
+  border-left: 4px solid #dc2626;
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin-bottom: 24px;
+  color: #7f1d1d;
+  display: none;
+}
+#error-banner.visible { display: block; }
+
+/* ── Cards ── */
+.card {
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.card-header {
+  background: #0d1b4b;
+  color: #fff;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-header .card-badge {
+  background: rgba(255,255,255,0.2);
+  border-radius: 4px;
+  padding: 1px 7px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.card-body {
+  padding: 16px;
+}
+
+/* ── Field rows ── */
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.field-row.single { grid-template-columns: 1fr; }
+.field-row.triple { grid-template-columns: 1fr 1fr 1fr; }
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.field-group label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+input[type="text"],
+select,
+textarea {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 5px;
+  padding: 7px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #1a1a2e;
+  background: #fff;
+  transition: border-color 0.15s;
+}
+input[type="text"]:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #1e40af;
+  box-shadow: 0 0 0 2px rgba(30,64,175,0.12);
+}
+input[readonly] {
+  background: #f3f4f6;
+  color: #6b7280;
+  cursor: default;
+}
+textarea {
+  resize: vertical;
+  min-height: 56px;
+}
+
+/* ── Price / CNF item cards ── */
+.item-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+.item-card-header {
+  background: #e9edf7;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.item-card-header span {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+}
+.item-card-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.item-card-body {
+  padding: 12px;
+}
+
+/* ── Divider label ── */
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin: 10px 0 6px;
+  border-top: 1px solid #f0f2f5;
+  padding-top: 10px;
+}
+.section-label:first-child { border-top: none; margin-top: 0; padding-top: 0; }
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  transition: background 0.15s, opacity 0.15s;
+}
+.btn:active { opacity: 0.85; }
+
+.btn-primary {
+  background: #0d1b4b;
+  color: #fff;
+}
+.btn-primary:hover { background: #1e3a8a; }
+
+.btn-secondary {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+.btn-secondary:hover { background: #e5e7eb; }
+
+.btn-danger {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+}
+.btn-danger:hover { background: #fecaca; }
+
+.btn-sm {
+  padding: 4px 9px;
+  font-size: 12px;
+}
+
+.btn-export {
+  background: #166534;
+  color: #fff;
+  padding: 10px 22px;
+  font-size: 14px;
+}
+.btn-export:hover { background: #15803d; }
+
+.add-row-bar {
+  padding: 8px 0 4px;
+  display: flex;
+  gap: 8px;
+}
+
+/* ── Checklist ── */
+.checklist {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  border-radius: 6px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.checklist h3 {
+  font-size: 12px;
+  font-weight: 700;
+  color: #14532d;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 10px;
+}
+.checklist label {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  color: #166534;
+  margin-bottom: 6px;
+  cursor: pointer;
+}
+.checklist input[type="checkbox"] {
+  margin-top: 2px;
+  width: 14px;
+  height: 14px;
+  accent-color: #166534;
+  flex-shrink: 0;
+}
+
+/* ── Export area ── */
+.export-area {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Validation error ── */
+.validation-error {
+  background: #fde8e8;
+  border: 1px solid #f87171;
+  border-radius: 5px;
+  padding: 10px 14px;
+  color: #7f1d1d;
+  font-size: 13px;
+  display: none;
+}
+.validation-error.visible { display: block; }
+.validation-error ul { margin: 6px 0 0 16px; }
+.validation-error li { margin-bottom: 3px; }
+
+/* ── Preview ── */
+.preview-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  color: #1e40af;
+  padding: 0;
+  font-family: inherit;
+  text-decoration: underline;
+  margin-bottom: 8px;
+}
+
+#preview-container {
+  display: none;
+}
+#preview-container.open { display: block; }
+
+#json-preview {
+  background: #1e2433;
+  color: #a8d8a8;
+  border-radius: 6px;
+  padding: 14px;
+  font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  max-height: 400px;
+  overflow-y: auto;
+  white-space: pre;
+  tab-size: 2;
+  border: 1px solid #374151;
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .field-row { grid-template-columns: 1fr; }
+  .field-row.triple { grid-template-columns: 1fr; }
+}

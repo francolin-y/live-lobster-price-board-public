@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin JSON Generator — Live Lobster Price Board</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="page-wrapper">
+
+  <h1>Admin JSON Generator</h1>
+  <p class="subtitle">Live Lobster Price Board &nbsp;·&nbsp; Local use only</p>
+
+  <div class="warning-banner">
+    <strong>Notice:</strong> This tool generates <code>current-prices.json</code> only.
+    It does <strong>not</strong> publish directly to the public website.
+    After export, upload the file to <code>/data/current-prices.json</code> on the Plesk server.
+  </div>
+
+  <div id="error-banner"></div>
+
+  <!-- ── A. Page Status ───────────────────────────────────── -->
+  <div class="card">
+    <div class="card-header">A &nbsp;·&nbsp; Page Status</div>
+    <div class="card-body">
+      <div class="field-row">
+        <div class="field-group">
+          <label for="dataStatus">dataStatus</label>
+          <select id="dataStatus">
+            <option value="sample">sample</option>
+            <option value="live">live</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="lastUpdated">lastUpdated</label>
+          <input type="text" id="lastUpdated" placeholder="e.g. 2026-07-18 10:00 AST">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── B. Announcement ──────────────────────────────────── -->
+  <div class="card">
+    <div class="card-header">B &nbsp;·&nbsp; Announcement</div>
+    <div class="card-body">
+      <div class="field-row">
+        <div class="field-group">
+          <label for="ann-zhHans">简体中文 (zhHans)</label>
+          <textarea id="ann-zhHans"></textarea>
+        </div>
+        <div class="field-group">
+          <label for="ann-zhHant">繁體中文 (zhHant)</label>
+          <textarea id="ann-zhHant"></textarea>
+        </div>
+      </div>
+      <div class="field-row single">
+        <div class="field-group">
+          <label for="ann-en">English (en)</label>
+          <textarea id="ann-en"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── C. Contacts ──────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-header">C &nbsp;·&nbsp; Contacts</div>
+    <div class="card-body">
+      <div class="field-row triple">
+        <div class="field-group">
+          <label for="wechat">WeChat</label>
+          <input type="text" id="wechat" placeholder="wechat ID">
+        </div>
+        <div class="field-group">
+          <label for="email">Email</label>
+          <input type="text" id="email" placeholder="email@example.com">
+        </div>
+        <div class="field-group">
+          <label for="phone">Phone</label>
+          <input type="text" id="phone" placeholder="+1 902 000 0000">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── D. Price Rows ────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-header">
+      D &nbsp;·&nbsp; Price Rows
+      <span class="card-badge" id="price-count-badge"></span>
+    </div>
+    <div class="card-body">
+      <div id="price-rows-container"></div>
+      <div class="add-row-bar">
+        <button class="btn btn-secondary" onclick="addPriceRow()">+ Add Price Row</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── E. CNF Add-Ons ───────────────────────────────────── -->
+  <div class="card">
+    <div class="card-header">
+      E &nbsp;·&nbsp; CNF Add-Ons
+      <span class="card-badge" id="cnf-count-badge"></span>
+    </div>
+    <div class="card-body">
+      <div id="cnf-rows-container"></div>
+      <div class="add-row-bar">
+        <button class="btn btn-secondary" onclick="addCnfRow()">+ Add CNF Row</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── F. Disclaimer ────────────────────────────────────── -->
+  <div class="card" id="disclaimer-section" style="display:none">
+    <div class="card-header">F &nbsp;·&nbsp; Disclaimer</div>
+    <div class="card-body">
+      <div class="field-row">
+        <div class="field-group">
+          <label for="disc-zhHans">简体中文 (zhHans)</label>
+          <textarea id="disc-zhHans"></textarea>
+        </div>
+        <div class="field-group">
+          <label for="disc-zhHant">繁體中文 (zhHant)</label>
+          <textarea id="disc-zhHant"></textarea>
+        </div>
+      </div>
+      <div class="field-row single">
+        <div class="field-group">
+          <label for="disc-en">English (en)</label>
+          <textarea id="disc-en"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Export ───────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-header">Export</div>
+    <div class="card-body">
+
+      <div class="checklist">
+        <h3>Before upload checklist</h3>
+        <label><input type="checkbox"> Confirm <code>dataStatus</code> is correct.</label>
+        <label><input type="checkbox"> Confirm <code>lastUpdated</code> is current.</label>
+        <label><input type="checkbox"> Confirm prices are approved.</label>
+        <label><input type="checkbox"> Confirm contacts are correct.</label>
+        <label><input type="checkbox"> Export <code>current-prices.json</code> using the button below.</label>
+        <label><input type="checkbox"> Upload <strong>only</strong> this file to <code>/data/current-prices.json</code> on Plesk.</label>
+        <label><input type="checkbox"> Refresh the public page and verify.</label>
+      </div>
+
+      <div class="export-area">
+        <div id="validation-error" class="validation-error"></div>
+        <button class="btn btn-export" onclick="exportJSON()">Export current-prices.json</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── JSON Preview ─────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-header">JSON Preview</div>
+    <div class="card-body">
+      <button class="preview-toggle" id="preview-toggle-btn" onclick="togglePreview()">Show JSON preview ▼</button>
+      <div id="preview-container">
+        <pre id="json-preview"></pre>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page-wrapper -->
+<script src="script.js"></script>
+</body>
+</html>
