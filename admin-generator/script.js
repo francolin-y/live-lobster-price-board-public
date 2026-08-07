@@ -585,6 +585,12 @@ function exportJSON() {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+
+  const successMsg = el('export-success');
+  if (successMsg) {
+    successMsg.classList.add('visible');
+    successMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
 }
 
 // ── Escape HTML for attribute injection ───────────────────────────────────

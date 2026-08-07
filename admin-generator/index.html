@@ -164,6 +164,25 @@
         <button class="btn btn-export" onclick="exportJSON()">Export current-prices.json</button>
       </div>
 
+      <div id="export-success" class="export-success">
+        <strong>current-prices.json exported.</strong>
+        Please complete the local verification checklist before uploading to Plesk.
+      </div>
+
+      <div class="checklist checklist-after">
+        <h3>After Export — local verification</h3>
+        <label><input type="checkbox"> Download <code>current-prices.json</code>.</label>
+        <label><input type="checkbox"> Replace local <code>data/current-prices.json</code> with the exported file.</label>
+        <label><input type="checkbox"> Run local static server from the project root:<br><code>python3 -m http.server 8080</code></label>
+        <label><input type="checkbox"> Open the public page locally:<br><code>http://localhost:8080</code></label>
+        <label><input type="checkbox"> Confirm the public page loads correctly in all three languages.</label>
+        <label><input type="checkbox"> Confirm price table, CNF section, contact section, request template, and disclaimer display correctly.</label>
+        <label><input type="checkbox"> If everything is correct, upload <strong>only</strong> <code>data/current-prices.json</code> to the Plesk server.</label>
+        <label><input type="checkbox"> Refresh: <code>https://prices.clarksharbourseafood.com</code></label>
+      </div>
+
+      <p class="manual-upload-note">The generator does not publish directly. Manual upload is still required in this version.</p>
+
     </div>
   </div>
 
