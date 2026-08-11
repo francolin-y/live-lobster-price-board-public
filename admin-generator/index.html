@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>Admin JSON Generator — Live Lobster Price Board</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -19,6 +22,27 @@
   </div>
 
   <div id="error-banner"></div>
+
+  <!-- ── Import JSON ──────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-header">Import JSON</div>
+    <div class="card-body">
+      <p class="import-helper">Import an existing <code>current-prices.json</code> file to edit it in this generator. This is useful when starting from the latest file downloaded from Plesk.</p>
+
+      <label for="importJsonFile" class="import-file-label">Choose current-prices.json</label>
+      <input type="file" id="importJsonFile" accept=".json,application/json">
+
+      <div id="selectedImportFileName" class="helper-text">No file selected</div>
+
+      <button type="button" id="loadImportedJsonButton" class="secondary-button">Load Selected JSON</button>
+
+      <p class="import-after-note">After importing, the form below should update immediately. Review all fields before exporting.</p>
+
+      <div id="importJsonMessage" class="status-message"></div>
+
+      <p class="import-safety-note">Importing a file only loads it into this generator. It does not change the public website.</p>
+    </div>
+  </div>
 
   <!-- ── A. Page Status ───────────────────────────────────── -->
   <div class="card">

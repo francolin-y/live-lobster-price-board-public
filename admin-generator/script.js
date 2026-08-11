@@ -1,11 +1,12 @@
 'use strict';
 
 // ── State ──────────────────────────────────────────────────────────────────
-let originalData = {};   // full parsed JSON from the file
-let priceRows   = [];    // array of price row objects (mutable)
-let cnfRows     = [];    // array of CNF row objects (mutable)
-let priceCounter = 0;    // monotonic id for DOM keys
-let cnfCounter   = 0;
+let originalData       = {};   // full parsed JSON from the file
+let priceRows          = [];   // array of price row objects (mutable)
+let cnfRows            = [];   // array of CNF row objects (mutable)
+let priceCounter       = 0;    // monotonic id for DOM keys
+let cnfCounter         = 0;
+let selectedImportFile = null; // file chosen in the import picker
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function el(id) { return document.getElementById(id); }
@@ -47,6 +48,72 @@ function renderValidationPanel(errors, warnings) {
       blocked.classList.remove('visible');
     }
   }
+}
+
+// ── Import ─────────────────────────────────────────────────────────────────
+function setImportMessage(message, type) {
+  const msgEl = el('importJsonMessage');
+  if (!msgEl) return;
+  msgEl.textContent = message;
+  msgEl.className = 'status-message ' + (
+    type === 'success' ? 'status-success' :
+    type === 'error'   ? 'status-error'   :
+                         'status-info'
+  );
+}
+
+function isValidImportedPriceBoardData(data) {
+  return (
+    data !== null &&
+    typeof data === 'object' &&
+    'dataStatus'  in data &&
+    'lastUpdated' in data &&
+    'contacts'    in data &&
+    Array.isArray(data.prices) &&
+    Array.isArray(data.cnfAddOns)
+  );
+}
+
+function applyImportedData(importedData) {
+  console.log('Imported JSON applied to editor');
+  originalData = importedData;
+  populateForm(importedData);
+}
+
+function loadSelectedImportFile() {
+  console.log('Load Selected JSON clicked');
+  if (!selectedImportFile) {
+    setImportMessage('Please choose a JSON file first.', 'error');
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = function(event) {
+    let importedData;
+    try {
+      importedData = JSON.parse(event.target.result);
+      console.log('Imported JSON parsed:', importedData);
+    } catch (error) {
+      console.error('Import JSON parse error:', error);
+      setImportMessage('Import failed. The file is not valid JSON.', 'error');
+      return;
+    }
+
+    if (!isValidImportedPriceBoardData(importedData)) {
+      setImportMessage('Import failed. The selected file is not a valid current-prices.json file.', 'error');
+      return;
+    }
+
+    applyImportedData(importedData);
+    setImportMessage('JSON imported successfully. Please review all fields before export.', 'success');
+  };
+
+  reader.onerror = function() {
+    setImportMessage('Import failed. The file could not be read.', 'error');
+  };
+
+  reader.readAsText(selectedImportFile);
 }
 
 // ── Load ───────────────────────────────────────────────────────────────────
@@ -629,4 +696,34 @@ window.togglePreview  = togglePreview;
 document.addEventListener('DOMContentLoaded', () => {
   wireStaticListeners();
   loadData();
+
+  // Import JSON — explicit event binding (no inline handlers)
+  const importInput    = el('importJsonFile');
+  const loadButton     = el('loadImportedJsonButton');
+  const selectedNameEl = el('selectedImportFileName');
+
+  if (importInput) {
+    importInput.addEventListener('change', function(event) {
+      console.log('Import input changed');
+      selectedImportFile = (event.target.files && event.target.files[0])
+        ? event.target.files[0]
+        : null;
+      console.log('Selected import file:', selectedImportFile ? selectedImportFile.name : 'none');
+      if (selectedNameEl) {
+        selectedNameEl.textContent = selectedImportFile
+          ? selectedImportFile.name
+          : 'No file selected';
+      }
+      if (selectedImportFile) {
+        setImportMessage('File selected. Click Load Selected JSON to import.', 'info');
+      }
+    });
+  }
+
+  if (loadButton) {
+    loadButton.addEventListener('click', function(event) {
+      event.preventDefault();
+      loadSelectedImportFile();
+    });
+  }
 });
