@@ -415,6 +415,58 @@ textarea {
   border-top: 1px solid #e5e7eb;
 }
 
+/* ── How to Use manual section ── */
+.manual-summary {
+  font-size: 13px;
+  color: #374151;
+  margin-bottom: 14px;
+}
+
+.manual-steps {
+  margin: 0 0 14px 18px;
+  padding: 0;
+  font-size: 13px;
+  color: #1a1a2e;
+  line-height: 1.8;
+}
+.manual-steps li { margin-bottom: 2px; }
+
+.manual-warning {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-left: 4px solid #ffc107;
+  border-radius: 5px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #664d03;
+  margin-bottom: 12px;
+}
+
+.manual-refresh-note {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-left: 4px solid #9ca3af;
+  border-radius: 5px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #374151;
+}
+.manual-refresh-note ul {
+  margin: 6px 0 0 18px;
+  padding: 0;
+}
+.manual-refresh-note li { margin-bottom: 2px; }
+
+kbd {
+  font-family: "SF Mono", "Fira Code", Consolas, monospace;
+  font-size: 12px;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 3px;
+  padding: 1px 5px;
+  color: #1a1a2e;
+}
+
 /* ── Import section ── */
 .import-file-label {
   display: block;

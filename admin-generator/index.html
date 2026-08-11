@@ -24,6 +24,42 @@
 
   <div id="error-banner"></div>
 
+  <!-- ── How to Use ────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-header">How to Use This Generator</div>
+    <div class="card-body">
+
+      <p class="manual-summary">This generator creates a valid <code>current-prices.json</code> file for the public Live Lobster Price Board. It does not publish directly to the public website.</p>
+
+      <ol class="manual-steps">
+        <li>Import the latest <code>current-prices.json</code> file, preferably downloaded from the Plesk server.</li>
+        <li>Review and update page status, last updated time, announcements, contacts, prices, CNF add-ons, and disclaimer.</li>
+        <li>Check the validation panel.</li>
+        <li>Fix all validation errors before export.</li>
+        <li>Review warnings carefully. Warnings do not block export.</li>
+        <li>Export <code>current-prices.json</code>.</li>
+        <li>Optionally export a timestamped backup for records.</li>
+        <li>Replace local <code>data/current-prices.json</code> with the exported file and test the public page locally.</li>
+        <li>Upload only <code>current-prices.json</code> to <code>/data/current-prices.json</code> on Plesk.</li>
+        <li>Refresh the public website and verify the updated content.</li>
+      </ol>
+
+      <div class="manual-warning">
+        <strong>Do not upload timestamped backup files to Plesk.</strong>
+        The public website only reads: <code>/data/current-prices.json</code>
+      </div>
+
+      <div class="manual-refresh-note">
+        <strong>If the generator does not appear to update after changes, hard refresh the browser:</strong>
+        <ul>
+          <li>Mac: <kbd>Command + Shift + R</kbd></li>
+          <li>Windows: <kbd>Ctrl + Shift + R</kbd></li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
   <!-- ── Import JSON ──────────────────────────────────────── -->
   <div class="card">
     <div class="card-header">Import JSON</div>
