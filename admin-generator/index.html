@@ -14,6 +14,7 @@
 
   <h1>Admin JSON Generator</h1>
   <p class="subtitle">Live Lobster Price Board &nbsp;·&nbsp; Local use only</p>
+  <p class="cache-note">If changes do not appear after editing this generator, hard refresh the browser (Cmd+Shift+R / Ctrl+Shift+R).</p>
 
   <div class="warning-banner">
     <strong>Notice:</strong> This tool generates <code>current-prices.json</code> only.
@@ -185,12 +186,25 @@
 
       <div class="export-area">
         <div id="validation-error" class="validation-error"></div>
-        <button class="btn btn-export" onclick="exportJSON()">Export current-prices.json</button>
+        <div class="export-file-note">
+          <p><strong>Upload file:</strong> <code>current-prices.json</code></p>
+          <p><strong>Backup file:</strong> <code>current-prices-backup-YYYY-MM-DD-HHMM.json</code></p>
+          <p>Only upload <code>current-prices.json</code> to Plesk. Keep timestamped files as local backups.</p>
+        </div>
+        <div class="export-buttons">
+          <button class="btn btn-export" onclick="exportJSON()">Export current-prices.json</button>
+          <button class="btn btn-backup" onclick="exportBackupJSON()">Export Timestamped Backup</button>
+        </div>
       </div>
 
       <div id="export-success" class="export-success">
         <strong>current-prices.json exported.</strong>
-        Please complete the local verification checklist before uploading to Plesk.
+        Upload this file to <code>/data/current-prices.json</code> after local verification.
+      </div>
+
+      <div id="export-backup-success" class="export-success">
+        <strong>Timestamped backup exported.</strong>
+        Keep this file for local records. Do not upload it to Plesk unless renamed to <code>current-prices.json</code>.
       </div>
 
       <div class="checklist checklist-after">

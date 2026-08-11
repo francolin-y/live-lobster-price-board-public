@@ -632,6 +632,28 @@ function togglePreview() {
 }
 
 // ── Export ─────────────────────────────────────────────────────────────────
+function formatExportTimestamp() {
+  const now  = new Date();
+  const yyyy = now.getFullYear();
+  const mm   = String(now.getMonth() + 1).padStart(2, '0');
+  const dd   = String(now.getDate()).padStart(2, '0');
+  const hh   = String(now.getHours()).padStart(2, '0');
+  const min  = String(now.getMinutes()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}-${hh}${min}`;
+}
+
+function triggerDownload(json, filename) {
+  const blob = new Blob([json], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 function exportJSON() {
   const obj = buildJSON();
   const { errors, warnings } = validate(obj);
@@ -642,21 +664,36 @@ function exportJSON() {
     return;
   }
 
-  const json  = JSON.stringify(obj, null, 2);
-  const blob  = new Blob([json], { type: 'application/json' });
-  const url   = URL.createObjectURL(blob);
-  const a     = document.createElement('a');
-  a.href      = url;
-  a.download  = 'current-prices.json';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  triggerDownload(JSON.stringify(obj, null, 2), 'current-prices.json');
 
+  el('export-backup-success')?.classList.remove('visible');
   const successMsg = el('export-success');
   if (successMsg) {
     successMsg.classList.add('visible');
     successMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
+function exportBackupJSON() {
+  const obj = buildJSON();
+  const { errors, warnings } = validate(obj);
+  renderValidationPanel(errors, warnings);
+
+  if (errors.length > 0) {
+    el('validation-panel-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
+
+  triggerDownload(
+    JSON.stringify(obj, null, 2),
+    `current-prices-backup-${formatExportTimestamp()}.json`
+  );
+
+  el('export-success')?.classList.remove('visible');
+  const bkMsg = el('export-backup-success');
+  if (bkMsg) {
+    bkMsg.classList.add('visible');
+    bkMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 }
 
@@ -689,8 +726,9 @@ window.deletePriceRow = deletePriceRow;
 window.movePriceRow   = movePriceRow;
 window.addCnfRow      = addCnfRow;
 window.deleteCnfRow   = deleteCnfRow;
-window.exportJSON     = exportJSON;
-window.togglePreview  = togglePreview;
+window.exportJSON       = exportJSON;
+window.exportBackupJSON = exportBackupJSON;
+window.togglePreview    = togglePreview;
 
 // ── Init ───────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {

@@ -37,7 +37,14 @@ h1 {
 .subtitle {
   font-size: 12px;
   color: #6b7280;
-  margin-bottom: 24px;
+  margin-bottom: 6px;
+}
+
+.cache-note {
+  font-size: 11px;
+  color: #6b7280;
+  margin-bottom: 20px;
+  font-style: italic;
 }
 
 /* ── Error banner ── */
@@ -273,8 +280,34 @@ textarea {
 .export-area {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
+
+.export-file-note {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 5px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #374151;
+  line-height: 1.8;
+}
+
+.export-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.btn-backup {
+  background: #fff;
+  color: #0d1b4b;
+  border: 1px solid #0d1b4b;
+  padding: 10px 22px;
+  font-size: 14px;
+}
+.btn-backup:hover { background: #f0f2f5; }
 
 /* ── Validation error ── */
 .validation-error {
