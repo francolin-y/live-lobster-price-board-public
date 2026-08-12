@@ -8,6 +8,47 @@ let priceCounter       = 0;    // monotonic id for DOM keys
 let cnfCounter         = 0;
 let selectedImportFile = null; // file chosen in the import picker
 
+// ── Collapsible sections ────────────────────────────────────────────────────
+const COLLAPSIBLE_SECTION_IDS = ['sec-a-body', 'sec-b-body', 'sec-c-body', 'sec-d-body', 'sec-e-body', 'sec-f-body'];
+
+function toggleSection(bodyId) {
+  const body = el(bodyId);
+  if (!body) return;
+  const willExpand = body.classList.contains('collapsed');
+  body.classList.toggle('collapsed');
+  const toggle = document.querySelector(`[aria-controls="${bodyId}"]`);
+  if (toggle) toggle.setAttribute('aria-expanded', willExpand ? 'true' : 'false');
+}
+
+function expandSection(bodyId) {
+  const body = el(bodyId);
+  if (!body) return;
+  body.classList.remove('collapsed');
+  const toggle = document.querySelector(`[aria-controls="${bodyId}"]`);
+  if (toggle) toggle.setAttribute('aria-expanded', 'true');
+  body.closest('.card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function expandAllSections() {
+  COLLAPSIBLE_SECTION_IDS.forEach(id => {
+    const body = el(id);
+    if (!body) return;
+    body.classList.remove('collapsed');
+    const toggle = document.querySelector(`[aria-controls="${id}"]`);
+    if (toggle) toggle.setAttribute('aria-expanded', 'true');
+  });
+}
+
+function collapseAllSections() {
+  COLLAPSIBLE_SECTION_IDS.forEach(id => {
+    const body = el(id);
+    if (!body) return;
+    body.classList.add('collapsed');
+    const toggle = document.querySelector(`[aria-controls="${id}"]`);
+    if (toggle) toggle.setAttribute('aria-expanded', 'false');
+  });
+}
+
 // ── Helpers ────────────────────────────────────────────────────────────────
 function el(id) { return document.getElementById(id); }
 
@@ -20,6 +61,25 @@ function showError(msg) {
   b.classList.add('visible');
 }
 
+// Maps section label prefixes to their collapsible body IDs for "Open ▸" links
+const SECTION_BODY_MAP = {
+  '[A · Page Status]':  'sec-a-body',
+  '[B · Announcement]': 'sec-b-body',
+  '[C · Contacts]':     'sec-c-body',
+  '[D · Price Rows]':   'sec-d-body',
+  '[E · CNF Add-Ons]':  'sec-e-body',
+};
+
+function buildValidationItem(msg) {
+  for (const [prefix, bodyId] of Object.entries(SECTION_BODY_MAP)) {
+    if (msg.startsWith(prefix)) {
+      const rest = msg.slice(prefix.length).trim();
+      return `<li><span class="vp-section-tag">${esc(prefix)}</span> ${esc(rest)} <button type="button" class="vp-open-btn" onclick="expandSection('${bodyId}')">Open ▸</button></li>`;
+    }
+  }
+  return `<li>${esc(msg)}</li>`;
+}
+
 function renderValidationPanel(errors, warnings) {
   const body = el('validation-panel-body');
   if (body) {
@@ -30,11 +90,11 @@ function renderValidationPanel(errors, warnings) {
       html += '<div class="vp-status passed">&#10003; Validation passed</div>';
     } else {
       html += `<div class="vp-status has-errors">&#10007; ${errors.length} validation error${errors.length !== 1 ? 's' : ''} — export blocked</div>`;
-      html += '<ul class="vp-list vp-errors">' + errors.map(m => `<li>${esc(m)}</li>`).join('') + '</ul>';
+      html += '<ul class="vp-list vp-errors">' + errors.map(m => buildValidationItem(m)).join('') + '</ul>';
     }
     if (hasWarnings) {
       html += '<div class="vp-warning-header">Warnings</div>';
-      html += '<ul class="vp-list vp-warnings">' + warnings.map(m => `<li>${esc(m)}</li>`).join('') + '</ul>';
+      html += '<ul class="vp-list vp-warnings">' + warnings.map(m => buildValidationItem(m)).join('') + '</ul>';
     }
     body.innerHTML = html;
   }
@@ -498,87 +558,93 @@ function validate(obj) {
   const errors   = [];
   const warnings = [];
 
-  // Top-level
+  // [A · Page Status]
   if (!obj.dataStatus || !['sample', 'live'].includes(obj.dataStatus)) {
-    errors.push('dataStatus must be "sample" or "live".');
+    errors.push('[A · Page Status] dataStatus must be "sample" or "live".');
   }
   if (!obj.lastUpdated) {
-    errors.push('lastUpdated must not be empty.');
+    errors.push('[A · Page Status] lastUpdated must not be empty.');
   }
+
+  // [C · Contacts]
   if (!obj.contacts) {
-    errors.push('contacts block is missing.');
+    errors.push('[C · Contacts] contacts block is missing.');
   }
+
+  // [D · Price Rows]
   if (!Array.isArray(obj.prices) || obj.prices.length === 0) {
-    errors.push('prices must be a non-empty array.');
+    errors.push('[D · Price Rows] prices must be a non-empty array.');
   }
+
+  // [E · CNF Add-Ons]
   if (!Array.isArray(obj.cnfAddOns)) {
-    errors.push('cnfAddOns must be an array.');
+    errors.push('[E · CNF Add-Ons] cnfAddOns must be an array.');
   }
 
-  // Contacts
+  // [C · Contacts] detail
   if (obj.contacts) {
-    if (!obj.contacts.wechat) errors.push('contacts.wechat must not be empty (use TBD if unknown).');
-    if (!obj.contacts.email)  errors.push('contacts.email must not be empty (use TBD if unknown).');
-    if (!obj.contacts.phone)  errors.push('contacts.phone must not be empty (use TBD if unknown).');
+    if (!obj.contacts.wechat) errors.push('[C · Contacts] wechat must not be empty (use TBD if unknown).');
+    if (!obj.contacts.email)  errors.push('[C · Contacts] email must not be empty (use TBD if unknown).');
+    if (!obj.contacts.phone)  errors.push('[C · Contacts] phone must not be empty (use TBD if unknown).');
   }
 
-  // Price rows
+  // [D · Price Rows] detail
   if (Array.isArray(obj.prices) && obj.prices.length > 0) {
     const seenIds = new Set();
     obj.prices.forEach((row, idx) => {
       const n   = idx + 1;
-      const ref = row.id ? `"${row.id}"` : `row ${n}`;
+      const ref = row.id ? `Row ${n} ("${row.id}")` : `Row ${n}`;
       if (!row.id) {
-        errors.push(`Price row ${n}: id must not be empty.`);
+        errors.push(`[D · Price Rows] Row ${n}: id must not be empty.`);
       } else if (seenIds.has(row.id)) {
-        errors.push(`Price row ${n}: id "${row.id}" is duplicated.`);
+        errors.push(`[D · Price Rows] Row ${n}: id "${row.id}" is duplicated.`);
       } else {
         seenIds.add(row.id);
       }
-      if (!row.size)     errors.push(`Price ${ref}: size must not be empty.`);
-      if (!row.cadPerLb) errors.push(`Price ${ref}: cadPerLb must not be empty.`);
-      if (!row.usdPerLb) errors.push(`Price ${ref}: usdPerLb must not be empty.`);
-      if (!row.rmbPerKg) errors.push(`Price ${ref}: rmbPerKg must not be empty.`);
+      if (!row.size)     errors.push(`[D · Price Rows] ${ref}: size must not be empty.`);
+      if (!row.cadPerLb) errors.push(`[D · Price Rows] ${ref}: cadPerLb must not be empty.`);
+      if (!row.usdPerLb) errors.push(`[D · Price Rows] ${ref}: usdPerLb must not be empty.`);
+      if (!row.rmbPerKg) errors.push(`[D · Price Rows] ${ref}: rmbPerKg must not be empty.`);
       if (!STATUS_OPTIONS.includes(row.status)) {
-        errors.push(`Price ${ref}: status "${row.status}" is not a valid value.`);
+        errors.push(`[D · Price Rows] ${ref}: status "${row.status}" is not a valid value.`);
       }
       if (!row.note) {
-        errors.push(`Price ${ref}: note block is missing.`);
+        errors.push(`[D · Price Rows] ${ref}: note block is missing.`);
       } else {
-        if (!row.note.zhHans) errors.push(`Price ${ref}: note.zhHans must not be empty.`);
-        if (!row.note.zhHant) errors.push(`Price ${ref}: note.zhHant must not be empty.`);
-        if (!row.note.en)     errors.push(`Price ${ref}: note.en must not be empty.`);
+        if (!row.note.zhHans) errors.push(`[D · Price Rows] ${ref}: note.zhHans must not be empty.`);
+        if (!row.note.zhHant) errors.push(`[D · Price Rows] ${ref}: note.zhHant must not be empty.`);
+        if (!row.note.en)     errors.push(`[D · Price Rows] ${ref}: note.en must not be empty.`);
       }
     });
   }
 
-  // CNF rows
+  // [E · CNF Add-Ons] detail
   if (Array.isArray(obj.cnfAddOns) && obj.cnfAddOns.length > 0) {
     const seenIds = new Set();
     obj.cnfAddOns.forEach((row, idx) => {
       const n   = idx + 1;
-      const ref = row.id ? `"${row.id}"` : `row ${n}`;
+      const ref = row.id ? `Row ${n} ("${row.id}")` : `Row ${n}`;
       if (!row.id) {
-        errors.push(`CNF row ${n}: id must not be empty.`);
+        errors.push(`[E · CNF Add-Ons] Row ${n}: id must not be empty.`);
       } else if (seenIds.has(row.id)) {
-        errors.push(`CNF row ${n}: id "${row.id}" is duplicated.`);
+        errors.push(`[E · CNF Add-Ons] Row ${n}: id "${row.id}" is duplicated.`);
       } else {
         seenIds.add(row.id);
       }
-      if (!row.addOn) errors.push(`CNF ${ref}: addOn must not be empty.`);
+      if (!row.addOn) errors.push(`[E · CNF Add-Ons] ${ref}: addOn must not be empty.`);
       if (!row.region) {
-        errors.push(`CNF ${ref}: region block is missing.`);
+        errors.push(`[E · CNF Add-Ons] ${ref}: region block is missing.`);
       } else {
-        if (!row.region.zhHans) errors.push(`CNF ${ref}: region.zhHans must not be empty.`);
-        if (!row.region.zhHant) errors.push(`CNF ${ref}: region.zhHant must not be empty.`);
-        if (!row.region.en)     errors.push(`CNF ${ref}: region.en must not be empty.`);
+        if (!row.region.zhHans) errors.push(`[E · CNF Add-Ons] ${ref}: region.zhHans must not be empty.`);
+        if (!row.region.zhHant) errors.push(`[E · CNF Add-Ons] ${ref}: region.zhHant must not be empty.`);
+        if (!row.region.en)     errors.push(`[E · CNF Add-Ons] ${ref}: region.en must not be empty.`);
       }
       if (!row.note) {
-        errors.push(`CNF ${ref}: note block is missing.`);
+        errors.push(`[E · CNF Add-Ons] ${ref}: note block is missing.`);
       } else {
-        if (!row.note.zhHans) errors.push(`CNF ${ref}: note.zhHans must not be empty.`);
-        if (!row.note.zhHant) errors.push(`CNF ${ref}: note.zhHant must not be empty.`);
-        if (!row.note.en)     errors.push(`CNF ${ref}: note.en must not be empty.`);
+        if (!row.note.zhHans) errors.push(`[E · CNF Add-Ons] ${ref}: note.zhHans must not be empty.`);
+        if (!row.note.zhHant) errors.push(`[E · CNF Add-Ons] ${ref}: note.zhHant must not be empty.`);
+        if (!row.note.en)     errors.push(`[E · CNF Add-Ons] ${ref}: note.en must not be empty.`);
       }
     });
   }
@@ -586,7 +652,7 @@ function validate(obj) {
   // Warnings
   const isLive = obj.dataStatus === 'live';
   if (obj.dataStatus === 'sample') {
-    warnings.push('dataStatus is sample. The public page will show the sample data banner.');
+    warnings.push('[A · Page Status] dataStatus is sample. The public page will show the sample data banner.');
   }
 
   const hasTBDPrice = Array.isArray(obj.prices) && obj.prices.some(r =>
@@ -594,8 +660,8 @@ function validate(obj) {
   );
   if (hasTBDPrice) {
     warnings.push(isLive
-      ? 'Live data contains TBD price fields. Confirm before publishing.'
-      : 'Some price fields are still TBD.'
+      ? '[D · Price Rows] Live data contains TBD price fields. Confirm before publishing.'
+      : '[D · Price Rows] Some price fields are still TBD.'
     );
   }
 
@@ -605,7 +671,7 @@ function validate(obj) {
     obj.contacts.phone  === 'TBD'
   );
   if (hasTBDContact) {
-    warnings.push('Some contact fields are still TBD.');
+    warnings.push('[C · Contacts] Some contact fields are still TBD.');
   }
 
   return { errors, warnings };
@@ -721,6 +787,10 @@ function wireStaticListeners() {
 }
 
 // ── Expose globals for inline onclick handlers ────────────────────────────
+window.toggleSection      = toggleSection;
+window.expandSection      = expandSection;
+window.expandAllSections  = expandAllSections;
+window.collapseAllSections = collapseAllSections;
 window.addPriceRow    = addPriceRow;
 window.deletePriceRow = deletePriceRow;
 window.movePriceRow   = movePriceRow;

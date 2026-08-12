@@ -415,6 +415,76 @@ textarea {
   border-top: 1px solid #e5e7eb;
 }
 
+/* ── Collapsible sections ── */
+.section-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  font-family: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  gap: 8px;
+}
+.section-toggle:focus-visible {
+  outline: 2px solid rgba(255,255,255,0.55);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.collapse-icon {
+  font-size: 13px;
+  flex-shrink: 0;
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+.section-toggle[aria-expanded="false"] .collapse-icon {
+  transform: rotate(-90deg);
+}
+
+.card-body.collapsed {
+  display: none;
+}
+
+.section-controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+/* ── Validation section tags + open links ── */
+.vp-section-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(0,0,0,0.08);
+  border-radius: 3px;
+  padding: 1px 5px;
+  margin-right: 3px;
+}
+.vp-errors  .vp-section-tag { background: rgba(127,29,29,0.10); }
+.vp-warnings .vp-section-tag { background: rgba(146,64,14,0.10); }
+
+.vp-open-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 11px;
+  color: #1e40af;
+  padding: 0 0 0 4px;
+  font-family: inherit;
+  text-decoration: underline;
+  vertical-align: baseline;
+}
+.vp-open-btn:hover { color: #1e3a8a; }
+
 /* ── How to Use manual section ── */
 .manual-summary {
   font-size: 13px;
