@@ -1,0 +1,317 @@
+/* Admin — Live Lobster Price Board */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --navy:       #0a1628;
+  --navy-mid:   #112240;
+  --navy-card:  #162c4a;
+  --accent:     #e8a020;
+  --accent-dim: #c8881a;
+  --text:       #e8edf4;
+  --text-muted: #8fa3bc;
+  --border:     #1e3a5f;
+  --danger:     #c0392b;
+  --danger-bg:  #2a0d0b;
+  --success:    #27ae60;
+  --radius:     6px;
+}
+
+body {
+  background: var(--navy);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+code {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  font-size: 0.88em;
+  background: rgba(255,255,255,0.07);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+/* ── Login ─────────────────────────────────────────────────────────────────── */
+
+.login-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.login-card {
+  background: var(--navy-mid);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 40px 36px;
+  width: 100%;
+  max-width: 380px;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.login-logo {
+  font-size: 2.4rem;
+  margin-bottom: 10px;
+}
+
+.login-header h1 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.login-subtitle {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  margin-top: 4px;
+}
+
+.login-error {
+  background: var(--danger-bg);
+  border: 1px solid var(--danger);
+  color: #e87070;
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  margin-bottom: 18px;
+  font-size: 0.9rem;
+}
+
+.field-group {
+  margin-bottom: 16px;
+}
+
+.field-group label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.field-group input[type="text"],
+.field-group input[type="password"] {
+  width: 100%;
+  background: var(--navy);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.95rem;
+  padding: 9px 12px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.field-group input:focus {
+  border-color: var(--accent);
+}
+
+.btn-login {
+  width: 100%;
+  background: var(--accent);
+  color: var(--navy);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 11px;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: background 0.15s;
+}
+
+.btn-login:hover { background: var(--accent-dim); }
+
+/* ── Setup error ───────────────────────────────────────────────────────────── */
+
+.setup-error-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.setup-error-card {
+  background: var(--navy-mid);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius);
+  padding: 36px 32px;
+  width: 100%;
+  max-width: 540px;
+}
+
+.setup-error-card h1 {
+  font-size: 1.3rem;
+  color: #e87070;
+  margin-bottom: 12px;
+}
+
+.setup-error-card h2 {
+  font-size: 1rem;
+  color: var(--text-muted);
+  margin: 20px 0 10px;
+}
+
+.setup-error-msg {
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.setup-steps {
+  padding-left: 20px;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.setup-steps li { line-height: 1.7; }
+
+/* ── Admin shell ───────────────────────────────────────────────────────────── */
+
+.admin-wrapper { min-height: 100vh; display: flex; flex-direction: column; }
+
+.admin-header {
+  background: var(--navy-mid);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+}
+
+.admin-header-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-header-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.admin-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.admin-nav-user {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.btn-logout {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  padding: 5px 12px;
+  text-decoration: none;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.btn-logout:hover { border-color: var(--accent); color: var(--accent); }
+
+.admin-main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 28px 24px 48px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Stage notice ──────────────────────────────────────────────────────────── */
+
+.stage-notice {
+  background: rgba(232, 160, 32, 0.08);
+  border: 1px solid rgba(232, 160, 32, 0.3);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+.stage-notice strong { color: var(--accent); }
+
+/* ── Dashboard cards ───────────────────────────────────────────────────────── */
+
+.dashboard-card {
+  background: var(--navy-mid);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.card-header {
+  background: var(--navy-card);
+  border-bottom: 1px solid var(--border);
+  padding: 11px 18px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.card-body { padding: 18px; }
+
+.error-card { border-color: var(--danger); }
+.error-msg  { color: #e87070; font-size: 0.92rem; }
+
+/* ── Overview table ────────────────────────────────────────────────────────── */
+
+.overview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.overview-table th,
+.overview-table td {
+  padding: 9px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.overview-table tr:last-child th,
+.overview-table tr:last-child td { border-bottom: none; }
+
+.overview-table th {
+  color: var(--text-muted);
+  font-weight: 500;
+  width: 160px;
+  white-space: nowrap;
+}
+
+.overview-table td { color: var(--text); }
+
+/* ── Status badge ──────────────────────────────────────────────────────────── */
+
+.status-badge {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-live    { background: rgba(39, 174, 96, 0.15);  color: #4cd97a; border: 1px solid rgba(39,174,96,0.35); }
+.status-sample  { background: rgba(232,160,32, 0.12);   color: var(--accent); border: 1px solid rgba(232,160,32,0.3); }
+.status-unknown { background: rgba(255,255,255,0.05);   color: var(--text-muted); border: 1px solid var(--border); }

@@ -5,3 +5,6 @@ dist/
 build/
 .env
 .env.local
+
+# Admin credentials — never commit
+admin/config.php
