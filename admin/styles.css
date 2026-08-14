@@ -730,3 +730,95 @@ code {
   font-size: 0.82rem;
   color: var(--text-muted);
 }
+
+/* ── Collapsible sections ──────────────────────────────────────────────────── */
+
+/* sec-controls: Expand All / Collapse All bar above the form */
+.sec-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-sec-ctrl {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.btn-sec-ctrl:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Section toggle button: fills the full header, replaces static header text */
+.sec-toggle {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0;
+  gap: 8px;
+  text-align: left;
+}
+
+.sec-toggle:hover { color: var(--accent); }
+
+.sec-toggle-icon {
+  font-size: 0.78rem;
+  flex-shrink: 0;
+  transition: transform 0.15s;
+}
+
+.sec-toggle[aria-expanded="false"] .sec-toggle-icon {
+  transform: rotate(-90deg);
+}
+
+/* Collapsed body: hidden but not removed from DOM (preserves form values) */
+.sec-collapsed {
+  display: none !important;
+}
+
+/* Optional label in section header */
+.sec-opt {
+  font-size: 0.75rem;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* ── Field group: Internal ID hint text ────────────────────────────────────── */
+
+.fg-hint {
+  font-size: 0.74rem;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text-muted);
+  opacity: 0.7;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.row-subheader-opt {
+  font-size: 0.72rem;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text-muted);
+  opacity: 0.65;
+}

@@ -14,7 +14,7 @@ require_once __DIR__ . '/auth.php';
 $config        = loadAdminConfig();
 $configMissing = ($config === null);
 
-// ── JSON path (shared by load + publish) ──────────────────────────────────────
+// ── JSON path ─────────────────────────────────────────────────────────────────
 $jsonPath = __DIR__ . '/../data/current-prices.json';
 
 // ── Load current JSON ─────────────────────────────────────────────────────────
@@ -33,21 +33,58 @@ if (!file_exists($jsonPath)) {
     }
 }
 
+// ── Status helpers ────────────────────────────────────────────────────────────
+function statusOptions(): array {
+    return [
+        'available'         => 'Available',
+        'limited'           => 'Limited',
+        'soldOut'           => 'Sold Out',
+        'contactSalesFirst' => 'Contact Sales First',
+        'preOrderOnly'      => 'Pre-order Only',
+    ];
+}
+
+function normalizeStatus(string $raw): string {
+    static $map = [
+        'available'           => 'available',
+        'Available'           => 'available',
+        'limited'             => 'limited',
+        'Limited'             => 'limited',
+        'soldOut'             => 'soldOut',
+        'Sold Out'            => 'soldOut',
+        'sold_out'            => 'soldOut',
+        'contactSalesFirst'   => 'contactSalesFirst',
+        'Contact Sales First' => 'contactSalesFirst',
+        'contact_sales_first' => 'contactSalesFirst',
+        'preOrderOnly'        => 'preOrderOnly',
+        'Pre-order Only'      => 'preOrderOnly',
+        'pre_order_only'      => 'preOrderOnly',
+    ];
+    return $map[$raw] ?? $raw;
+}
+
+function generateId(string $size): string {
+    $id = strtolower($size);
+    $id = preg_replace('/[^a-z0-9]+/', '-', $id);
+    return 'size-' . trim($id, '-');
+}
+
 // ── Build normalized form data from POST ──────────────────────────────────────
 function buildFormData(array $p): array {
     $prices = [];
     foreach ($p['prices'] ?? [] as $r) {
+        $sv  = trim($r['size_single'] ?? '');
+        $id  = trim($r['id'] ?? '');
+        if ($id === '' && $sv !== '') {
+            $id = generateId($sv);
+        }
         $prices[] = [
-            'id'       => trim($r['id'] ?? ''),
-            'size'     => [
-                'zhHans' => trim($r['size']['zhHans'] ?? ''),
-                'zhHant' => trim($r['size']['zhHant'] ?? ''),
-                'en'     => trim($r['size']['en'] ?? ''),
-            ],
+            'id'       => $id,
+            'size'     => $sv,
             'cadPerLb' => trim($r['cadPerLb'] ?? ''),
             'usdPerLb' => trim($r['usdPerLb'] ?? ''),
             'rmbPerKg' => trim($r['rmbPerKg'] ?? ''),
-            'status'   => trim($r['status'] ?? ''),
+            'status'   => normalizeStatus(trim($r['status'] ?? '')),
             'notes'    => [
                 'zhHans' => trim($r['notes']['zhHans'] ?? ''),
                 'zhHant' => trim($r['notes']['zhHant'] ?? ''),
@@ -57,8 +94,9 @@ function buildFormData(array $p): array {
     }
     $cnf = [];
     foreach ($p['cnf'] ?? [] as $r) {
+        $cnfId = trim($r['id'] ?? '');
         $cnf[] = [
-            'id'     => trim($r['id'] ?? ''),
+            'id'     => $cnfId,
             'region' => [
                 'zhHans' => trim($r['region']['zhHans'] ?? ''),
                 'zhHant' => trim($r['region']['zhHant'] ?? ''),
@@ -111,10 +149,11 @@ function validatePriceBoard(array $d): array {
         $warnings[] = '[A · Page Status] dataStatus is "sample". Public page will show the sample data banner.';
     }
 
-    // B · Announcement
-    if (!$nz($d['announcement']['zhHans'])) $errors[] = '[B · Announcement] Simplified Chinese is required.';
-    if (!$nz($d['announcement']['zhHant'])) $errors[] = '[B · Announcement] Traditional Chinese is required.';
-    if (!$nz($d['announcement']['en']))     $errors[] = '[B · Announcement] English announcement is required.';
+    // B · Announcement (optional — warn if all empty)
+    $ann = $d['announcement'] ?? [];
+    if (!$nz($ann['zhHans'] ?? '') && !$nz($ann['zhHant'] ?? '') && !$nz($ann['en'] ?? '')) {
+        $warnings[] = '[B · Announcement] Announcement is empty.';
+    }
 
     // C · Contacts
     foreach (['wechat', 'email', 'phone'] as $f) {
@@ -129,18 +168,16 @@ function validatePriceBoard(array $d): array {
     }
     $tbdPrice = false;
     foreach ($d['prices'] as $i => $r) {
-        $n = $i + 1;
-        if (!$nz($r['id']))              $errors[] = "[D · Price Rows] Row $n: id is required.";
-        if (!$nz($r['size']['zhHans']))  $errors[] = "[D · Price Rows] Row $n: size.zhHans is required.";
-        if (!$nz($r['size']['zhHant']))  $errors[] = "[D · Price Rows] Row $n: size.zhHant is required.";
-        if (!$nz($r['size']['en']))      $errors[] = "[D · Price Rows] Row $n: size.en is required.";
-        if (!$nz($r['cadPerLb']))        $errors[] = "[D · Price Rows] Row $n: cadPerLb is required.";
-        if (!$nz($r['usdPerLb']))        $errors[] = "[D · Price Rows] Row $n: usdPerLb is required.";
-        if (!$nz($r['rmbPerKg']))        $errors[] = "[D · Price Rows] Row $n: rmbPerKg is required.";
-        if (!$nz($r['status']))          $errors[] = "[D · Price Rows] Row $n: status is required.";
-        if (!$nz($r['notes']['zhHans'])) $errors[] = "[D · Price Rows] Row $n: notes.zhHans is required.";
-        if (!$nz($r['notes']['zhHant'])) $errors[] = "[D · Price Rows] Row $n: notes.zhHant is required.";
-        if (!$nz($r['notes']['en']))     $errors[] = "[D · Price Rows] Row $n: notes.en is required.";
+        $n    = $i + 1;
+        $size = is_array($r['size'] ?? null)
+            ? ($r['size']['en'] ?? $r['size']['zhHans'] ?? '')
+            : ($r['size'] ?? '');
+        if (!$nz($r['id']))       $errors[] = "[D · Price Rows] Row $n: id is required.";
+        if (!$nz($size))          $errors[] = "[D · Price Rows] Row $n: size is required.";
+        if (!$nz($r['cadPerLb'])) $errors[] = "[D · Price Rows] Row $n: cadPerLb is required.";
+        if (!$nz($r['usdPerLb'])) $errors[] = "[D · Price Rows] Row $n: usdPerLb is required.";
+        if (!$nz($r['rmbPerKg'])) $errors[] = "[D · Price Rows] Row $n: rmbPerKg is required.";
+        if (!$nz($r['status']))   $errors[] = "[D · Price Rows] Row $n: status is required.";
         foreach (['cadPerLb', 'usdPerLb', 'rmbPerKg'] as $pf) {
             if (($r[$pf] ?? '') === 'TBD') $tbdPrice = true;
         }
@@ -160,15 +197,9 @@ function validatePriceBoard(array $d): array {
         if (!$nz($r['region']['zhHant'])) $errors[] = "[E · CNF Add-ons] Row $n: region.zhHant is required.";
         if (!$nz($r['region']['en']))     $errors[] = "[E · CNF Add-ons] Row $n: region.en is required.";
         if (!$nz($r['addOn']))            $errors[] = "[E · CNF Add-ons] Row $n: addOn is required.";
-        if (!$nz($r['notes']['zhHans']))  $errors[] = "[E · CNF Add-ons] Row $n: notes.zhHans is required.";
-        if (!$nz($r['notes']['zhHant']))  $errors[] = "[E · CNF Add-ons] Row $n: notes.zhHant is required.";
-        if (!$nz($r['notes']['en']))      $errors[] = "[E · CNF Add-ons] Row $n: notes.en is required.";
     }
 
-    // F · Disclaimer
-    if (!$nz($d['disclaimer']['zhHans'])) $errors[] = '[F · Disclaimer] Simplified Chinese disclaimer is required.';
-    if (!$nz($d['disclaimer']['zhHant'])) $errors[] = '[F · Disclaimer] Traditional Chinese disclaimer is required.';
-    if (!$nz($d['disclaimer']['en']))     $errors[] = '[F · Disclaimer] English disclaimer is required.';
+    // F · Disclaimer (optional)
 
     return ['errors' => $errors, 'warnings' => $warnings];
 }
@@ -179,11 +210,7 @@ function publishJson(array $data, string $jsonPath): array {
 
     if (!is_dir($backupDir)) {
         if (!@mkdir($backupDir, 0755, true)) {
-            return [
-                'success' => false,
-                'error'   => 'Publish failed. Backup directory could not be created.',
-                'backup'  => null,
-            ];
+            return ['success' => false, 'error' => 'Publish failed. Backup directory could not be created.', 'backup' => null];
         }
     }
 
@@ -192,11 +219,7 @@ function publishJson(array $data, string $jsonPath): array {
     $backupPath = $backupDir . '/' . $backupName;
 
     if (file_exists($jsonPath) && !@copy($jsonPath, $backupPath)) {
-        return [
-            'success' => false,
-            'error'   => 'Publish failed. Backup could not be created.',
-            'backup'  => null,
-        ];
+        return ['success' => false, 'error' => 'Publish failed. Backup could not be created.', 'backup' => null];
     }
 
     $newJson = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
@@ -205,20 +228,12 @@ function publishJson(array $data, string $jsonPath): array {
     $bytes = @file_put_contents($tmpPath, $newJson, LOCK_EX);
     if ($bytes === false) {
         @unlink($tmpPath);
-        return [
-            'success' => false,
-            'error'   => 'Publish failed. current-prices.json could not be written.',
-            'backup'  => $backupName,
-        ];
+        return ['success' => false, 'error' => 'Publish failed. current-prices.json could not be written.', 'backup' => $backupName];
     }
 
     if (!@rename($tmpPath, $jsonPath)) {
         @unlink($tmpPath);
-        return [
-            'success' => false,
-            'error'   => 'Publish failed. current-prices.json could not be updated.',
-            'backup'  => $backupName,
-        ];
+        return ['success' => false, 'error' => 'Publish failed. current-prices.json could not be updated.', 'backup' => $backupName];
     }
 
     return ['success' => true, 'backup' => $backupName, 'error' => null];
@@ -279,11 +294,8 @@ if (!$configMissing && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($result['success']) {
                     $publishSuccess = true;
                     $backupFilename = $result['backup'];
-                    // Re-read from file so form reflects exactly what was saved
                     $saved = @json_decode(@file_get_contents($jsonPath), true);
-                    if (is_array($saved)) {
-                        $fd = $saved;
-                    }
+                    if (is_array($saved)) { $fd = $saved; }
                 } else {
                     $publishError   = $result['error'];
                     $backupFilename = $result['backup'] ?? '';
@@ -294,10 +306,7 @@ if (!$configMissing && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-if (isLoggedIn() && $fd === null) {
-    $fd = $jsonData;
-}
-
+if (isLoggedIn() && $fd === null) { $fd = $jsonData; }
 if (isLoggedIn() && empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
@@ -312,12 +321,16 @@ function sv(array $arr, string ...$keys): string {
     return is_string($cur) ? $cur : (is_numeric($cur) ? (string)$cur : '');
 }
 
-function fv(array $arr, string ...$keys): string {
-    return esc(sv($arr, ...$keys));
-}
+function fv(array $arr, string ...$keys): string { return esc(sv($arr, ...$keys)); }
 
 function sel(string $current, string $option): string {
     return $current === $option ? ' selected' : '';
+}
+
+function extractSize(array $row): string {
+    $s = $row['size'] ?? '';
+    if (is_array($s)) { return $s['en'] ?? $s['zhHans'] ?? $s['zhHant'] ?? ''; }
+    return is_string($s) ? $s : '';
 }
 
 ?>
@@ -333,7 +346,6 @@ function sel(string $current, string $option): string {
 
 <?php if ($configMissing): ?>
 
-<!-- ── Config missing ────────────────────────────────────────────────────── -->
 <div class="setup-error-wrapper">
   <div class="setup-error-card">
     <h1>Admin Setup Required</h1>
@@ -352,7 +364,6 @@ function sel(string $current, string $option): string {
 
 <?php elseif (!isLoggedIn()): ?>
 
-<!-- ── Login ─────────────────────────────────────────────────────────────── -->
 <div class="login-wrapper">
   <div class="login-card">
     <div class="login-header">
@@ -360,11 +371,9 @@ function sel(string $current, string $option): string {
       <h1>Admin Login</h1>
       <p class="login-subtitle">Live Lobster Price Board</p>
     </div>
-
     <?php if ($loginError !== ''): ?>
       <div class="login-error"><?= esc($loginError) ?></div>
     <?php endif; ?>
-
     <form method="POST" action="index.php" autocomplete="off">
       <input type="hidden" name="action" value="login">
       <div class="field-group">
@@ -382,7 +391,6 @@ function sel(string $current, string $option): string {
 
 <?php else: ?>
 
-<!-- ── Admin shell ────────────────────────────────────────────────────────── -->
 <div class="admin-wrapper">
 
   <header class="admin-header">
@@ -404,20 +412,29 @@ function sel(string $current, string $option): string {
     <?php if ($fd === null): ?>
       <div class="dashboard-card error-card">
         <div class="card-header">JSON Read Error</div>
-        <div class="card-body">
-          <p class="error-msg"><?= esc($jsonError) ?></p>
-        </div>
+        <div class="card-body"><p class="error-msg"><?= esc($jsonError) ?></p></div>
       </div>
-
     <?php else: ?>
+
+    <!-- Expand / Collapse All ────────────────────────────────────────────── -->
+    <div class="sec-controls">
+      <button type="button" class="btn-sec-ctrl" onclick="expandAllSections()">Expand All</button>
+      <button type="button" class="btn-sec-ctrl" onclick="collapseAllSections()">Collapse All</button>
+    </div>
 
     <form method="POST" action="index.php" id="admin-form">
       <input type="hidden" name="csrf_token" value="<?= esc($_SESSION['csrf_token']) ?>">
 
-      <!-- ── A · Page Status ─────────────────────────────────────────────── -->
+      <!-- ── A · Page Status (expanded) ────────────────────────────────── -->
       <div class="form-section">
-        <div class="form-section-header">A &nbsp;·&nbsp; Page Status</div>
-        <div class="form-section-body">
+        <div class="form-section-header">
+          <button type="button" class="sec-toggle" aria-expanded="true" aria-controls="sec-a-body"
+                  onclick="toggleSection('sec-a-body')">
+            <span>A &nbsp;·&nbsp; Page Status</span>
+            <span class="sec-toggle-icon" aria-hidden="true">▾</span>
+          </button>
+        </div>
+        <div class="form-section-body" id="sec-a-body">
           <div class="row-fields dual">
             <div class="fg">
               <label for="dataStatus">dataStatus</label>
@@ -436,10 +453,16 @@ function sel(string $current, string $option): string {
         </div>
       </div>
 
-      <!-- ── B · Announcement ───────────────────────────────────────────── -->
+      <!-- ── B · Announcement (collapsed) ──────────────────────────────── -->
       <div class="form-section">
-        <div class="form-section-header">B &nbsp;·&nbsp; Announcement</div>
-        <div class="form-section-body">
+        <div class="form-section-header">
+          <button type="button" class="sec-toggle" aria-expanded="false" aria-controls="sec-b-body"
+                  onclick="toggleSection('sec-b-body')">
+            <span>B &nbsp;·&nbsp; Announcement</span>
+            <span class="sec-toggle-icon" aria-hidden="true">▾</span>
+          </button>
+        </div>
+        <div class="form-section-body sec-collapsed" id="sec-b-body">
           <div class="row-fields triple">
             <div class="fg">
               <label>zhHans</label>
@@ -457,10 +480,16 @@ function sel(string $current, string $option): string {
         </div>
       </div>
 
-      <!-- ── C · Contacts ───────────────────────────────────────────────── -->
+      <!-- ── C · Contacts (expanded) ───────────────────────────────────── -->
       <div class="form-section">
-        <div class="form-section-header">C &nbsp;·&nbsp; Contacts</div>
-        <div class="form-section-body">
+        <div class="form-section-header">
+          <button type="button" class="sec-toggle" aria-expanded="true" aria-controls="sec-c-body"
+                  onclick="toggleSection('sec-c-body')">
+            <span>C &nbsp;·&nbsp; Contacts</span>
+            <span class="sec-toggle-icon" aria-hidden="true">▾</span>
+          </button>
+        </div>
+        <div class="form-section-body" id="sec-c-body">
           <div class="row-fields triple">
             <div class="fg">
               <label>wechat</label>
@@ -478,15 +507,20 @@ function sel(string $current, string $option): string {
         </div>
       </div>
 
-      <!-- ── D · Price Rows ─────────────────────────────────────────────── -->
+      <!-- ── D · Price Rows (collapsed) ────────────────────────────────── -->
       <div class="form-section">
         <div class="form-section-header">
-          D &nbsp;·&nbsp; Price Rows
-          <span class="row-count" id="price-row-count"></span>
+          <button type="button" class="sec-toggle" aria-expanded="false" aria-controls="sec-d-body"
+                  onclick="toggleSection('sec-d-body')">
+            <span>D &nbsp;·&nbsp; Price Rows <span class="row-count" id="price-row-count"></span></span>
+            <span class="sec-toggle-icon" aria-hidden="true">▾</span>
+          </button>
         </div>
-        <div class="form-section-body">
+        <div class="form-section-body sec-collapsed" id="sec-d-body">
           <div id="price-rows-container">
-            <?php foreach (($fd['prices'] ?? []) as $i => $row): ?>
+            <?php foreach (($fd['prices'] ?? []) as $i => $row):
+              $rowStatus = normalizeStatus(sv($row, 'status'));
+            ?>
             <div class="data-row" id="price-row-<?= $i ?>">
               <div class="data-row-header">
                 <span class="data-row-label">Row <?= $i + 1 ?></span>
@@ -496,32 +530,23 @@ function sel(string $current, string $option): string {
               <div class="data-row-body">
                 <div class="row-fields dual">
                   <div class="fg">
-                    <label>id</label>
-                    <input type="text" name="prices[<?= $i ?>][id]" value="<?= fv($row, 'id') ?>">
+                    <label>Size</label>
+                    <input type="text" name="prices[<?= $i ?>][size_single]"
+                           value="<?= esc(extractSize($row)) ?>"
+                           placeholder="e.g. 1.25–1.50 lb">
                   </div>
                   <div class="fg">
-                    <label>status</label>
-                    <input type="text" name="prices[<?= $i ?>][status]" value="<?= fv($row, 'status') ?>"
-                           placeholder="available / unavailable">
+                    <label>Status</label>
+                    <select name="prices[<?= $i ?>][status]">
+                      <?php foreach (statusOptions() as $val => $label): ?>
+                        <option value="<?= esc($val) ?>"<?= sel($rowStatus, $val) ?>><?= esc($label) ?></option>
+                      <?php endforeach; ?>
+                    </select>
                   </div>
                 </div>
-                <div class="row-subheader">Size</div>
-                <div class="row-fields triple">
-                  <div class="fg">
-                    <label>zhHans</label>
-                    <input type="text" name="prices[<?= $i ?>][size][zhHans]"
-                           value="<?= fv($row, 'size', 'zhHans') ?>">
-                  </div>
-                  <div class="fg">
-                    <label>zhHant</label>
-                    <input type="text" name="prices[<?= $i ?>][size][zhHant]"
-                           value="<?= fv($row, 'size', 'zhHant') ?>">
-                  </div>
-                  <div class="fg">
-                    <label>en</label>
-                    <input type="text" name="prices[<?= $i ?>][size][en]"
-                           value="<?= fv($row, 'size', 'en') ?>">
-                  </div>
+                <div class="fg fg-id">
+                  <label>Internal ID <span class="fg-hint">Used by the system to track this row. Usually do not edit.</span></label>
+                  <input type="text" name="prices[<?= $i ?>][id]" value="<?= fv($row, 'id') ?>">
                 </div>
                 <div class="row-subheader">Prices</div>
                 <div class="row-fields triple">
@@ -538,7 +563,7 @@ function sel(string $current, string $option): string {
                     <input type="text" name="prices[<?= $i ?>][rmbPerKg]" value="<?= fv($row, 'rmbPerKg') ?>">
                   </div>
                 </div>
-                <div class="row-subheader">Notes</div>
+                <div class="row-subheader">Notes <span class="row-subheader-opt">(optional)</span></div>
                 <div class="row-fields triple">
                   <div class="fg">
                     <label>zhHans</label>
@@ -563,13 +588,16 @@ function sel(string $current, string $option): string {
         </div>
       </div>
 
-      <!-- ── E · CNF Add-ons ────────────────────────────────────────────── -->
+      <!-- ── E · CNF Add-ons (collapsed) ───────────────────────────────── -->
       <div class="form-section">
         <div class="form-section-header">
-          E &nbsp;·&nbsp; CNF Add-ons
-          <span class="row-count" id="cnf-row-count"></span>
+          <button type="button" class="sec-toggle" aria-expanded="false" aria-controls="sec-e-body"
+                  onclick="toggleSection('sec-e-body')">
+            <span>E &nbsp;·&nbsp; CNF Add-ons <span class="row-count" id="cnf-row-count"></span></span>
+            <span class="sec-toggle-icon" aria-hidden="true">▾</span>
+          </button>
         </div>
-        <div class="form-section-body">
+        <div class="form-section-body sec-collapsed" id="sec-e-body">
           <div id="cnf-rows-container">
             <?php foreach (($fd['cnfAddOns'] ?? []) as $i => $row): ?>
             <div class="data-row" id="cnf-row-<?= $i ?>">
@@ -581,12 +609,12 @@ function sel(string $current, string $option): string {
               <div class="data-row-body">
                 <div class="row-fields dual">
                   <div class="fg">
-                    <label>id</label>
-                    <input type="text" name="cnf[<?= $i ?>][id]" value="<?= fv($row, 'id') ?>">
-                  </div>
-                  <div class="fg">
                     <label>addOn</label>
                     <input type="text" name="cnf[<?= $i ?>][addOn]" value="<?= fv($row, 'addOn') ?>">
+                  </div>
+                  <div class="fg fg-id">
+                    <label>Internal ID <span class="fg-hint">Usually do not edit.</span></label>
+                    <input type="text" name="cnf[<?= $i ?>][id]" value="<?= fv($row, 'id') ?>">
                   </div>
                 </div>
                 <div class="row-subheader">Region</div>
@@ -607,7 +635,7 @@ function sel(string $current, string $option): string {
                            value="<?= fv($row, 'region', 'en') ?>">
                   </div>
                 </div>
-                <div class="row-subheader">Notes</div>
+                <div class="row-subheader">Notes <span class="row-subheader-opt">(optional)</span></div>
                 <div class="row-fields triple">
                   <div class="fg">
                     <label>zhHans</label>
@@ -632,10 +660,16 @@ function sel(string $current, string $option): string {
         </div>
       </div>
 
-      <!-- ── F · Disclaimer ─────────────────────────────────────────────── -->
+      <!-- ── F · Disclaimer (collapsed) ────────────────────────────────── -->
       <div class="form-section">
-        <div class="form-section-header">F &nbsp;·&nbsp; Disclaimer</div>
-        <div class="form-section-body">
+        <div class="form-section-header">
+          <button type="button" class="sec-toggle" aria-expanded="false" aria-controls="sec-f-body"
+                  onclick="toggleSection('sec-f-body')">
+            <span>F &nbsp;·&nbsp; Disclaimer <span class="sec-opt">(optional)</span></span>
+            <span class="sec-toggle-icon" aria-hidden="true">▾</span>
+          </button>
+        </div>
+        <div class="form-section-body sec-collapsed" id="sec-f-body">
           <div class="row-fields triple">
             <div class="fg">
               <label>zhHans</label>
@@ -661,9 +695,7 @@ function sel(string $current, string $option): string {
           </button>
           <span class="form-actions-note">Validates and shows JSON output. Does not save.</span>
         </div>
-
         <div class="form-actions-divider"></div>
-
         <div class="form-actions-publish">
           <p class="publish-warning">
             Publishing will overwrite <code>/data/current-prices.json</code> after creating a timestamped backup.
@@ -675,9 +707,20 @@ function sel(string $current, string $option): string {
       </div>
 
       <!-- ── G · Validation & JSON Preview ─────────────────────────────── -->
-      <div class="form-section" id="section-g">
-        <div class="form-section-header">G &nbsp;·&nbsp; Validation &amp; JSON Preview</div>
-        <div class="form-section-body">
+      <?php
+        $gExpanded  = $isPreviewing || $isPublishing || $publishSuccess;
+        $gAriaExp   = $gExpanded ? 'true' : 'false';
+        $gBodyClass = $gExpanded ? 'form-section-body' : 'form-section-body sec-collapsed';
+      ?>
+      <div class="form-section">
+        <div class="form-section-header">
+          <button type="button" class="sec-toggle" aria-expanded="<?= $gAriaExp ?>"
+                  aria-controls="sec-g-body" onclick="toggleSection('sec-g-body')">
+            <span>G &nbsp;·&nbsp; Validation &amp; JSON Preview</span>
+            <span class="sec-toggle-icon" aria-hidden="true">▾</span>
+          </button>
+        </div>
+        <div class="<?= $gBodyClass ?>" id="sec-g-body">
 
           <?php if (!$isPreviewing && !$isPublishing): ?>
 
@@ -691,13 +734,9 @@ function sel(string $current, string $option): string {
             <div class="publish-success-box">
               <div class="publish-success-icon">&#10003;</div>
               <p class="publish-success-title">Publish successful.</p>
-              <p class="publish-success-body">
-                Public page now reads the updated <code>current-prices.json</code>.
-              </p>
+              <p class="publish-success-body">Public page now reads the updated <code>current-prices.json</code>.</p>
               <?php if ($backupFilename !== ''): ?>
-                <p class="publish-success-backup">
-                  Backup saved: <code><?= esc($backupFilename) ?></code>
-                </p>
+                <p class="publish-success-backup">Backup saved: <code><?= esc($backupFilename) ?></code></p>
               <?php endif; ?>
               <div class="publish-success-links">
                 <a href="../" target="_blank" class="publish-link">View Public Page &#8599;</a>
@@ -706,7 +745,6 @@ function sel(string $current, string $option): string {
                 </a>
               </div>
             </div>
-
             <?php if (!empty($validationResult['warnings'])): ?>
               <div class="vp-block-label vp-warn-label" style="margin-top:20px;">
                 Warnings published with this version
@@ -774,16 +812,48 @@ function sel(string $current, string $option): string {
     </form>
 
     <?php endif; ?>
-
   </main>
 </div>
 
 <?php endif; ?>
 
 <script>
+// ── Section IDs ──────────────────────────────────────────────────────────────
+var ALL_SECTION_BODIES = ['sec-a-body','sec-b-body','sec-c-body','sec-d-body','sec-e-body','sec-f-body','sec-g-body'];
+
+// ── Collapsible sections ─────────────────────────────────────────────────────
+function toggleSection(bodyId) {
+  var body = document.getElementById(bodyId);
+  if (!body) return;
+  var willExpand = body.classList.contains('sec-collapsed');
+  body.classList.toggle('sec-collapsed');
+  var toggle = document.querySelector('[aria-controls="' + bodyId + '"]');
+  if (toggle) toggle.setAttribute('aria-expanded', willExpand ? 'true' : 'false');
+}
+
+function expandAllSections() {
+  ALL_SECTION_BODIES.forEach(function(id) {
+    var body = document.getElementById(id);
+    if (!body) return;
+    body.classList.remove('sec-collapsed');
+    var toggle = document.querySelector('[aria-controls="' + id + '"]');
+    if (toggle) toggle.setAttribute('aria-expanded', 'true');
+  });
+}
+
+function collapseAllSections() {
+  ALL_SECTION_BODIES.forEach(function(id) {
+    var body = document.getElementById(id);
+    if (!body) return;
+    body.classList.add('sec-collapsed');
+    var toggle = document.querySelector('[aria-controls="' + id + '"]');
+    if (toggle) toggle.setAttribute('aria-expanded', 'false');
+  });
+}
+
 // ── Row counters ─────────────────────────────────────────────────────────────
-let priceRowCount = <?= count($fd['prices']    ?? []) ?>;
-let cnfRowCount   = <?= count($fd['cnfAddOns'] ?? []) ?>;
+var priceRowCount = <?= count($fd['prices']    ?? []) ?>;
+var cnfRowCount   = <?= count($fd['cnfAddOns'] ?? []) ?>;
 
 function updateCount(badgeId, containerId) {
   var badge = document.getElementById(badgeId);
@@ -798,6 +868,14 @@ function deleteRow(rowId, badgeId) {
   var containerId = rowId.indexOf('price') === 0 ? 'price-rows-container' : 'cnf-rows-container';
   updateCount(badgeId, containerId);
 }
+
+// ── Status select options HTML ────────────────────────────────────────────────
+var STATUS_SELECT_OPTIONS =
+  '<option value="available">Available</option>' +
+  '<option value="limited">Limited</option>' +
+  '<option value="soldOut">Sold Out</option>' +
+  '<option value="contactSalesFirst">Contact Sales First</option>' +
+  '<option value="preOrderOnly">Pre-order Only</option>';
 
 // ── Add Price Row ────────────────────────────────────────────────────────────
 function addPriceRow() {
@@ -814,22 +892,18 @@ function addPriceRow() {
     '</div>' +
     '<div class="data-row-body">' +
       '<div class="row-fields dual">' +
-        '<div class="fg"><label>id</label><input type="text" name="prices[' + idx + '][id]" value=""></div>' +
-        '<div class="fg"><label>status</label><input type="text" name="prices[' + idx + '][status]" value="" placeholder="available / unavailable"></div>' +
+        '<div class="fg"><label>Size</label><input type="text" name="prices[' + idx + '][size_single]" value="" placeholder="e.g. 1.25–1.50 lb"></div>' +
+        '<div class="fg"><label>Status</label><select name="prices[' + idx + '][status]">' + STATUS_SELECT_OPTIONS + '</select></div>' +
       '</div>' +
-      '<div class="row-subheader">Size</div>' +
-      '<div class="row-fields triple">' +
-        '<div class="fg"><label>zhHans</label><input type="text" name="prices[' + idx + '][size][zhHans]" value=""></div>' +
-        '<div class="fg"><label>zhHant</label><input type="text" name="prices[' + idx + '][size][zhHant]" value=""></div>' +
-        '<div class="fg"><label>en</label><input type="text" name="prices[' + idx + '][size][en]" value=""></div>' +
-      '</div>' +
+      '<div class="fg fg-id"><label>Internal ID <span class="fg-hint">Used by the system. Usually do not edit.</span></label>' +
+        '<input type="text" name="prices[' + idx + '][id]" value=""></div>' +
       '<div class="row-subheader">Prices</div>' +
       '<div class="row-fields triple">' +
         '<div class="fg"><label>cadPerLb</label><input type="text" name="prices[' + idx + '][cadPerLb]" value=""></div>' +
         '<div class="fg"><label>usdPerLb</label><input type="text" name="prices[' + idx + '][usdPerLb]" value=""></div>' +
         '<div class="fg"><label>rmbPerKg</label><input type="text" name="prices[' + idx + '][rmbPerKg]" value=""></div>' +
       '</div>' +
-      '<div class="row-subheader">Notes</div>' +
+      '<div class="row-subheader">Notes <span class="row-subheader-opt">(optional)</span></div>' +
       '<div class="row-fields triple">' +
         '<div class="fg"><label>zhHans</label><textarea name="prices[' + idx + '][notes][zhHans]"></textarea></div>' +
         '<div class="fg"><label>zhHant</label><textarea name="prices[' + idx + '][notes][zhHant]"></textarea></div>' +
@@ -855,8 +929,9 @@ function addCnfRow() {
     '</div>' +
     '<div class="data-row-body">' +
       '<div class="row-fields dual">' +
-        '<div class="fg"><label>id</label><input type="text" name="cnf[' + idx + '][id]" value=""></div>' +
         '<div class="fg"><label>addOn</label><input type="text" name="cnf[' + idx + '][addOn]" value=""></div>' +
+        '<div class="fg fg-id"><label>Internal ID <span class="fg-hint">Usually do not edit.</span></label>' +
+          '<input type="text" name="cnf[' + idx + '][id]" value=""></div>' +
       '</div>' +
       '<div class="row-subheader">Region</div>' +
       '<div class="row-fields triple">' +
@@ -864,7 +939,7 @@ function addCnfRow() {
         '<div class="fg"><label>zhHant</label><input type="text" name="cnf[' + idx + '][region][zhHant]" value=""></div>' +
         '<div class="fg"><label>en</label><input type="text" name="cnf[' + idx + '][region][en]" value=""></div>' +
       '</div>' +
-      '<div class="row-subheader">Notes</div>' +
+      '<div class="row-subheader">Notes <span class="row-subheader-opt">(optional)</span></div>' +
       '<div class="row-fields triple">' +
         '<div class="fg"><label>zhHans</label><textarea name="cnf[' + idx + '][notes][zhHans]"></textarea></div>' +
         '<div class="fg"><label>zhHant</label><textarea name="cnf[' + idx + '][notes][zhHant]"></textarea></div>' +
@@ -889,10 +964,6 @@ if (publishBtn) {
 document.addEventListener('DOMContentLoaded', function() {
   updateCount('price-row-count', 'price-rows-container');
   updateCount('cnf-row-count', 'cnf-rows-container');
-  <?php if ($isPreviewing || $isPublishing): ?>
-  var g = document.getElementById('section-g');
-  if (g) g.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  <?php endif; ?>
 });
 </script>
 
