@@ -228,7 +228,7 @@ function publishJson(array $data, string $jsonPath): array {
     $bytes = @file_put_contents($tmpPath, $newJson, LOCK_EX);
     if ($bytes === false) {
         @unlink($tmpPath);
-        return ['success' => false, 'error' => 'Publish failed. current-prices.json could not be written.', 'backup' => $backupName];
+        return ['success' => false, 'error' => 'Publish failed. current-prices.json could not be updated.', 'backup' => $backupName];
     }
 
     if (!@rename($tmpPath, $jsonPath)) {
