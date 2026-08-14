@@ -118,13 +118,34 @@ var I18N = {
   },
 };
 
-// Maps each status string to its CSS class suffix (defined in styles.css)
+// Maps each status string to its CSS class suffix (defined in styles.css).
+// Accepts both old display strings and new internal camelCase values.
 var STATUS_CLASS = {
+  'available':           'available',
+  'limited':             'limited',
+  'soldOut':             'sold-out',
+  'contactSalesFirst':   'contact',
+  'preOrderOnly':        'preorder',
   'Available':           'available',
   'Limited':             'limited',
   'Sold Out':            'sold-out',
   'Contact Sales First': 'contact',
   'Pre-order Only':      'preorder',
+};
+
+// Normalizes any status value (internal or old display string) to the
+// canonical English display string used as a key in I18N[lang].status.
+var STATUS_CANONICAL = {
+  'available':           'Available',
+  'limited':             'Limited',
+  'soldOut':             'Sold Out',
+  'contactSalesFirst':   'Contact Sales First',
+  'preOrderOnly':        'Pre-order Only',
+  'Available':           'Available',
+  'Limited':             'Limited',
+  'Sold Out':            'Sold Out',
+  'Contact Sales First': 'Contact Sales First',
+  'Pre-order Only':      'Pre-order Only',
 };
 
 // Maps our language codes to the JSON field names for translated content
@@ -248,7 +269,7 @@ function renderLastUpdated(data, t) {
 
 function renderAnnouncement(data, t, lk) {
   setText('announcement-title', t.announcement);
-  var text = (data.announcement && data.announcement[lk]) ? data.announcement[lk] : '';
+  var text = getLocalizedText(data.announcement, lk);
   setText('announcement-text', text);
 }
 
@@ -265,13 +286,14 @@ function renderPriceTable(data, t, lk) {
   tbody.innerHTML = '';
 
   (data.prices || []).forEach(function (row) {
-    var statusLabel = t.status[row.status] || row.status;
+    var canonical   = STATUS_CANONICAL[row.status] || row.status || '';
+    var statusLabel = t.status[canonical] || canonical;
     var statusCls   = 'status-badge status-' + (STATUS_CLASS[row.status] || 'available');
-    var note        = (row.note && row.note[lk]) ? row.note[lk] : '';
+    var note        = getLocalizedText(row.notes || row.note, lk);
 
     var tr = document.createElement('tr');
     tr.innerHTML =
-      '<td>' + esc(row.size)     + '</td>' +
+      '<td>' + esc(getLocalizedText(row.size, lk)) + '</td>' +
       '<td>' + esc(row.cadPerLb) + '</td>' +
       '<td>' + esc(row.usdPerLb) + '</td>' +
       '<td>' + esc(row.rmbPerKg) + '</td>' +
@@ -291,8 +313,8 @@ function renderCnfTable(data, t, lk) {
   tbody.innerHTML = '';
 
   (data.cnfAddOns || []).forEach(function (row) {
-    var region = (row.region && row.region[lk]) ? row.region[lk] : '';
-    var note   = (row.note   && row.note[lk])   ? row.note[lk]   : '';
+    var region = getLocalizedText(row.region, lk);
+    var note   = getLocalizedText(row.notes || row.note, lk);
 
     var tr = document.createElement('tr');
     tr.innerHTML =
@@ -421,4 +443,16 @@ function esc(str) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+// Safely extract displayable text from any value:
+// string/number → returned as-is, multilingual object → preferred language field,
+// null/undefined → empty string. Prevents "[object Object]" from appearing.
+function getLocalizedText(value, language) {
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'string' || typeof value === 'number') return String(value);
+  if (typeof value === 'object') {
+    return value[language] || value.en || value.zhHans || value.zhHant || '';
+  }
+  return String(value);
 }
