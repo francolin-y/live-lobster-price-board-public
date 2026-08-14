@@ -8,3 +8,6 @@ build/
 
 # Admin credentials — never commit
 admin/config.php
+
+# Auto-generated backup files — never commit
+data/backups/

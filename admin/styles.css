@@ -510,14 +510,7 @@ code {
   color: var(--accent);
 }
 
-/* ── Form actions ──────────────────────────────────────────────────────────── */
-
-.form-actions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 4px 0;
-}
+/* ── Preview button (standalone, inside .form-actions-preview) ─────────────── */
 
 .btn-preview {
   background: var(--accent);
@@ -603,4 +596,137 @@ code {
   padding: 14px;
   resize: vertical;
   outline: none;
+}
+
+/* ── Form actions (Preview + Publish) ─────────────────────────────────────── */
+
+.form-actions {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  background: var(--navy-mid);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.form-actions-preview,
+.form-actions-publish {
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.form-actions-preview { flex: 0 0 auto; }
+.form-actions-publish  { flex: 1; }
+
+.form-actions-divider {
+  width: 1px;
+  align-self: stretch;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.publish-warning {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.btn-publish {
+  background: var(--danger);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+  align-self: flex-start;
+}
+
+.btn-publish:hover { background: #a93226; }
+
+/* ── Publish success ───────────────────────────────────────────────────────── */
+
+.publish-success-box {
+  background: rgba(39, 174, 96, 0.08);
+  border: 1px solid rgba(39, 174, 96, 0.35);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.publish-success-icon {
+  font-size: 1.6rem;
+  color: #4cd97a;
+  line-height: 1;
+}
+
+.publish-success-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #4cd97a;
+}
+
+.publish-success-body {
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.publish-success-backup {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.publish-success-links {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.publish-link {
+  display: inline-block;
+  background: rgba(39, 174, 96, 0.15);
+  border: 1px solid rgba(39, 174, 96, 0.35);
+  border-radius: var(--radius);
+  color: #4cd97a;
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.publish-link:hover { background: rgba(39, 174, 96, 0.25); }
+
+.publish-link-secondary {
+  background: rgba(255,255,255,0.04);
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+
+.publish-link-secondary:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+
+/* ── Publish error ─────────────────────────────────────────────────────────── */
+
+.publish-error-box {
+  background: var(--danger-bg);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius);
+  color: #e87070;
+  padding: 12px 16px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.publish-error-detail {
+  font-size: 0.82rem;
+  color: var(--text-muted);
 }

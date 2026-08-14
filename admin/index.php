@@ -14,11 +14,13 @@ require_once __DIR__ . '/auth.php';
 $config        = loadAdminConfig();
 $configMissing = ($config === null);
 
+// ── JSON path (shared by load + publish) ──────────────────────────────────────
+$jsonPath = __DIR__ . '/../data/current-prices.json';
+
 // ── Load current JSON ─────────────────────────────────────────────────────────
 $jsonData  = null;
 $jsonError = '';
 
-$jsonPath = __DIR__ . '/../data/current-prices.json';
 if (!file_exists($jsonPath)) {
     $jsonError = 'current-prices.json not found at /data/current-prices.json.';
 } else {
@@ -117,7 +119,7 @@ function validatePriceBoard(array $d): array {
     // C · Contacts
     foreach (['wechat', 'email', 'phone'] as $f) {
         $val = $d['contacts'][$f] ?? '';
-        if (!$nz($val))       $errors[]   = "[C · Contacts] $f is required.";
+        if (!$nz($val))         $errors[]   = "[C · Contacts] $f is required.";
         elseif ($val === 'TBD') $warnings[] = "[C · Contacts] $f is TBD.";
     }
 
@@ -128,14 +130,14 @@ function validatePriceBoard(array $d): array {
     $tbdPrice = false;
     foreach ($d['prices'] as $i => $r) {
         $n = $i + 1;
-        if (!$nz($r['id']))             $errors[] = "[D · Price Rows] Row $n: id is required.";
-        if (!$nz($r['size']['zhHans'])) $errors[] = "[D · Price Rows] Row $n: size.zhHans is required.";
-        if (!$nz($r['size']['zhHant'])) $errors[] = "[D · Price Rows] Row $n: size.zhHant is required.";
-        if (!$nz($r['size']['en']))     $errors[] = "[D · Price Rows] Row $n: size.en is required.";
-        if (!$nz($r['cadPerLb']))       $errors[] = "[D · Price Rows] Row $n: cadPerLb is required.";
-        if (!$nz($r['usdPerLb']))       $errors[] = "[D · Price Rows] Row $n: usdPerLb is required.";
-        if (!$nz($r['rmbPerKg']))       $errors[] = "[D · Price Rows] Row $n: rmbPerKg is required.";
-        if (!$nz($r['status']))         $errors[] = "[D · Price Rows] Row $n: status is required.";
+        if (!$nz($r['id']))              $errors[] = "[D · Price Rows] Row $n: id is required.";
+        if (!$nz($r['size']['zhHans']))  $errors[] = "[D · Price Rows] Row $n: size.zhHans is required.";
+        if (!$nz($r['size']['zhHant']))  $errors[] = "[D · Price Rows] Row $n: size.zhHant is required.";
+        if (!$nz($r['size']['en']))      $errors[] = "[D · Price Rows] Row $n: size.en is required.";
+        if (!$nz($r['cadPerLb']))        $errors[] = "[D · Price Rows] Row $n: cadPerLb is required.";
+        if (!$nz($r['usdPerLb']))        $errors[] = "[D · Price Rows] Row $n: usdPerLb is required.";
+        if (!$nz($r['rmbPerKg']))        $errors[] = "[D · Price Rows] Row $n: rmbPerKg is required.";
+        if (!$nz($r['status']))          $errors[] = "[D · Price Rows] Row $n: status is required.";
         if (!$nz($r['notes']['zhHans'])) $errors[] = "[D · Price Rows] Row $n: notes.zhHans is required.";
         if (!$nz($r['notes']['zhHant'])) $errors[] = "[D · Price Rows] Row $n: notes.zhHant is required.";
         if (!$nz($r['notes']['en']))     $errors[] = "[D · Price Rows] Row $n: notes.en is required.";
@@ -171,14 +173,70 @@ function validatePriceBoard(array $d): array {
     return ['errors' => $errors, 'warnings' => $warnings];
 }
 
-// ── Request dispatch ──────────────────────────────────────────────────────────
+// ── Publish ───────────────────────────────────────────────────────────────────
+function publishJson(array $data, string $jsonPath): array {
+    $backupDir = dirname($jsonPath) . '/backups';
+
+    if (!is_dir($backupDir)) {
+        if (!@mkdir($backupDir, 0755, true)) {
+            return [
+                'success' => false,
+                'error'   => 'Publish failed. Backup directory could not be created.',
+                'backup'  => null,
+            ];
+        }
+    }
+
+    $ts         = date('Y-m-d-His');
+    $backupName = 'current-prices-backup-' . $ts . '.json';
+    $backupPath = $backupDir . '/' . $backupName;
+
+    if (file_exists($jsonPath) && !@copy($jsonPath, $backupPath)) {
+        return [
+            'success' => false,
+            'error'   => 'Publish failed. Backup could not be created.',
+            'backup'  => null,
+        ];
+    }
+
+    $newJson = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
+    $tmpPath = $jsonPath . '.tmp';
+
+    $bytes = @file_put_contents($tmpPath, $newJson, LOCK_EX);
+    if ($bytes === false) {
+        @unlink($tmpPath);
+        return [
+            'success' => false,
+            'error'   => 'Publish failed. current-prices.json could not be written.',
+            'backup'  => $backupName,
+        ];
+    }
+
+    if (!@rename($tmpPath, $jsonPath)) {
+        @unlink($tmpPath);
+        return [
+            'success' => false,
+            'error'   => 'Publish failed. current-prices.json could not be updated.',
+            'backup'  => $backupName,
+        ];
+    }
+
+    return ['success' => true, 'backup' => $backupName, 'error' => null];
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
 $loginError       = '';
 $formError        = '';
 $isPreviewing     = false;
+$isPublishing     = false;
+$publishSuccess   = false;
+$publishError     = '';
+$backupFilename   = '';
 $previewJson      = null;
 $validationResult = null;
 $fd               = null;
 
+// ── Request dispatch ──────────────────────────────────────────────────────────
 if (!$configMissing && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
@@ -203,6 +261,35 @@ if (!$configMissing && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $fd               = buildFormData($_POST);
             $validationResult = validatePriceBoard($fd);
             $previewJson      = json_encode($fd, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        }
+
+    } elseif ($action === 'publish' && isLoggedIn()) {
+        if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
+            $formError = 'Security token mismatch. Refresh the page and try again.';
+        } else {
+            $isPublishing     = true;
+            $fd               = buildFormData($_POST);
+            $validationResult = validatePriceBoard($fd);
+
+            if (!empty($validationResult['errors'])) {
+                $publishError = 'Publish blocked. Fix all validation errors first.';
+                $previewJson  = json_encode($fd, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            } else {
+                $result = publishJson($fd, $jsonPath);
+                if ($result['success']) {
+                    $publishSuccess = true;
+                    $backupFilename = $result['backup'];
+                    // Re-read from file so form reflects exactly what was saved
+                    $saved = @json_decode(@file_get_contents($jsonPath), true);
+                    if (is_array($saved)) {
+                        $fd = $saved;
+                    }
+                } else {
+                    $publishError   = $result['error'];
+                    $backupFilename = $result['backup'] ?? '';
+                    $previewJson    = json_encode($fd, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                }
+            }
         }
     }
 }
@@ -310,18 +397,11 @@ function sel(string $current, string $option): string {
 
   <main class="admin-main">
 
-    <div class="stage-notice">
-      <strong>Current Stage:</strong>
-      Preview Changes validates and shows the JSON output only.
-      Save / Publish to <code>/data/current-prices.json</code> will be added in a later patch.
-    </div>
-
     <?php if ($formError !== ''): ?>
       <div class="form-error-banner"><?= esc($formError) ?></div>
     <?php endif; ?>
 
     <?php if ($fd === null): ?>
-      <!-- JSON load failed, show error only -->
       <div class="dashboard-card error-card">
         <div class="card-header">JSON Read Error</div>
         <div class="card-body">
@@ -331,9 +411,7 @@ function sel(string $current, string $option): string {
 
     <?php else: ?>
 
-    <!-- ── Edit Form ──────────────────────────────────────────────────────── -->
     <form method="POST" action="index.php" id="admin-form">
-      <input type="hidden" name="action" value="preview">
       <input type="hidden" name="csrf_token" value="<?= esc($_SESSION['csrf_token']) ?>">
 
       <!-- ── A · Page Status ─────────────────────────────────────────────── -->
@@ -412,7 +490,8 @@ function sel(string $current, string $option): string {
             <div class="data-row" id="price-row-<?= $i ?>">
               <div class="data-row-header">
                 <span class="data-row-label">Row <?= $i + 1 ?></span>
-                <button type="button" class="btn-delete-row" onclick="deleteRow('price-row-<?= $i ?>', 'price-row-count')">Remove</button>
+                <button type="button" class="btn-delete-row"
+                        onclick="deleteRow('price-row-<?= $i ?>', 'price-row-count')">Remove</button>
               </div>
               <div class="data-row-body">
                 <div class="row-fields dual">
@@ -422,22 +501,26 @@ function sel(string $current, string $option): string {
                   </div>
                   <div class="fg">
                     <label>status</label>
-                    <input type="text" name="prices[<?= $i ?>][status]" value="<?= fv($row, 'status') ?>" placeholder="available / unavailable">
+                    <input type="text" name="prices[<?= $i ?>][status]" value="<?= fv($row, 'status') ?>"
+                           placeholder="available / unavailable">
                   </div>
                 </div>
                 <div class="row-subheader">Size</div>
                 <div class="row-fields triple">
                   <div class="fg">
                     <label>zhHans</label>
-                    <input type="text" name="prices[<?= $i ?>][size][zhHans]" value="<?= fv($row, 'size', 'zhHans') ?>">
+                    <input type="text" name="prices[<?= $i ?>][size][zhHans]"
+                           value="<?= fv($row, 'size', 'zhHans') ?>">
                   </div>
                   <div class="fg">
                     <label>zhHant</label>
-                    <input type="text" name="prices[<?= $i ?>][size][zhHant]" value="<?= fv($row, 'size', 'zhHant') ?>">
+                    <input type="text" name="prices[<?= $i ?>][size][zhHant]"
+                           value="<?= fv($row, 'size', 'zhHant') ?>">
                   </div>
                   <div class="fg">
                     <label>en</label>
-                    <input type="text" name="prices[<?= $i ?>][size][en]" value="<?= fv($row, 'size', 'en') ?>">
+                    <input type="text" name="prices[<?= $i ?>][size][en]"
+                           value="<?= fv($row, 'size', 'en') ?>">
                   </div>
                 </div>
                 <div class="row-subheader">Prices</div>
@@ -492,7 +575,8 @@ function sel(string $current, string $option): string {
             <div class="data-row" id="cnf-row-<?= $i ?>">
               <div class="data-row-header">
                 <span class="data-row-label">Row <?= $i + 1 ?></span>
-                <button type="button" class="btn-delete-row" onclick="deleteRow('cnf-row-<?= $i ?>', 'cnf-row-count')">Remove</button>
+                <button type="button" class="btn-delete-row"
+                        onclick="deleteRow('cnf-row-<?= $i ?>', 'cnf-row-count')">Remove</button>
               </div>
               <div class="data-row-body">
                 <div class="row-fields dual">
@@ -509,15 +593,18 @@ function sel(string $current, string $option): string {
                 <div class="row-fields triple">
                   <div class="fg">
                     <label>zhHans</label>
-                    <input type="text" name="cnf[<?= $i ?>][region][zhHans]" value="<?= fv($row, 'region', 'zhHans') ?>">
+                    <input type="text" name="cnf[<?= $i ?>][region][zhHans]"
+                           value="<?= fv($row, 'region', 'zhHans') ?>">
                   </div>
                   <div class="fg">
                     <label>zhHant</label>
-                    <input type="text" name="cnf[<?= $i ?>][region][zhHant]" value="<?= fv($row, 'region', 'zhHant') ?>">
+                    <input type="text" name="cnf[<?= $i ?>][region][zhHant]"
+                           value="<?= fv($row, 'region', 'zhHant') ?>">
                   </div>
                   <div class="fg">
                     <label>en</label>
-                    <input type="text" name="cnf[<?= $i ?>][region][en]" value="<?= fv($row, 'region', 'en') ?>">
+                    <input type="text" name="cnf[<?= $i ?>][region][en]"
+                           value="<?= fv($row, 'region', 'en') ?>">
                   </div>
                 </div>
                 <div class="row-subheader">Notes</div>
@@ -568,8 +655,23 @@ function sel(string $current, string $option): string {
 
       <!-- ── Form actions ───────────────────────────────────────────────── -->
       <div class="form-actions">
-        <button type="submit" class="btn-preview">Preview Changes</button>
-        <span class="form-actions-note">Validates fields and shows the JSON output. Does not save or publish.</span>
+        <div class="form-actions-preview">
+          <button type="submit" name="action" value="preview" class="btn-preview">
+            Preview Changes
+          </button>
+          <span class="form-actions-note">Validates and shows JSON output. Does not save.</span>
+        </div>
+
+        <div class="form-actions-divider"></div>
+
+        <div class="form-actions-publish">
+          <p class="publish-warning">
+            Publishing will overwrite <code>/data/current-prices.json</code> after creating a timestamped backup.
+          </p>
+          <button type="submit" name="action" value="publish" class="btn-publish" id="btn-publish">
+            Publish to Public Page
+          </button>
+        </div>
       </div>
 
       <!-- ── G · Validation & JSON Preview ─────────────────────────────── -->
@@ -577,18 +679,61 @@ function sel(string $current, string $option): string {
         <div class="form-section-header">G &nbsp;·&nbsp; Validation &amp; JSON Preview</div>
         <div class="form-section-body">
 
-          <?php if (!$isPreviewing): ?>
-            <p class="vp-idle">Click <strong>Preview Changes</strong> to validate fields and see the JSON output.</p>
+          <?php if (!$isPreviewing && !$isPublishing): ?>
 
-          <?php else: ?>
+            <p class="vp-idle">
+              Click <strong>Preview Changes</strong> to validate and see the JSON output,
+              or <strong>Publish to Public Page</strong> to validate and write to the server.
+            </p>
 
-            <?php
-              $errors   = $validationResult['errors']   ?? [];
-              $warnings = $validationResult['warnings'] ?? [];
-            ?>
+          <?php elseif ($publishSuccess): ?>
+
+            <div class="publish-success-box">
+              <div class="publish-success-icon">&#10003;</div>
+              <p class="publish-success-title">Publish successful.</p>
+              <p class="publish-success-body">
+                Public page now reads the updated <code>current-prices.json</code>.
+              </p>
+              <?php if ($backupFilename !== ''): ?>
+                <p class="publish-success-backup">
+                  Backup saved: <code><?= esc($backupFilename) ?></code>
+                </p>
+              <?php endif; ?>
+              <div class="publish-success-links">
+                <a href="../" target="_blank" class="publish-link">View Public Page &#8599;</a>
+                <a href="../data/current-prices.json" target="_blank" class="publish-link publish-link-secondary">
+                  View current-prices.json &#8599;
+                </a>
+              </div>
+            </div>
+
+            <?php if (!empty($validationResult['warnings'])): ?>
+              <div class="vp-block-label vp-warn-label" style="margin-top:20px;">
+                Warnings published with this version
+              </div>
+              <ul class="vp-list vp-warnings">
+                <?php foreach ($validationResult['warnings'] as $w): ?>
+                  <li><?= esc($w) ?></li>
+                <?php endforeach; ?>
+              </ul>
+            <?php endif; ?>
+
+          <?php else:
+            $errors   = $validationResult['errors']   ?? [];
+            $warnings = $validationResult['warnings'] ?? [];
+          ?>
+
+            <?php if ($publishError !== ''): ?>
+              <div class="publish-error-box">
+                <?= esc($publishError) ?>
+                <?php if ($backupFilename !== ''): ?>
+                  <br><span class="publish-error-detail">Backup at: <code><?= esc($backupFilename) ?></code></span>
+                <?php endif; ?>
+              </div>
+            <?php endif; ?>
 
             <?php if (empty($errors) && empty($warnings)): ?>
-              <div class="vp-pass">&#10003; No errors or warnings. Ready to publish when Save / Publish is available.</div>
+              <div class="vp-pass">&#10003; No errors or warnings.</div>
             <?php endif; ?>
 
             <?php if (!empty($errors)): ?>
@@ -609,9 +754,17 @@ function sel(string $current, string $option): string {
               </ul>
             <?php endif; ?>
 
-            <div class="vp-block-label" style="margin-top:20px;">JSON Preview</div>
-            <p class="vp-preview-note">This is what <code>current-prices.json</code> would contain. No file has been written.</p>
-            <textarea class="json-preview-area" readonly><?= esc($previewJson ?? '') ?></textarea>
+            <?php if ($previewJson !== null): ?>
+              <div class="vp-block-label" style="margin-top:20px;">JSON Preview</div>
+              <p class="vp-preview-note">
+                <?php if ($isPublishing): ?>
+                  Publish was blocked. The JSON below has <strong>not</strong> been written.
+                <?php else: ?>
+                  This is what <code>current-prices.json</code> would contain. No file has been written.
+                <?php endif; ?>
+              </p>
+              <textarea class="json-preview-area" readonly><?= esc($previewJson) ?></textarea>
+            <?php endif; ?>
 
           <?php endif; ?>
 
@@ -628,36 +781,36 @@ function sel(string $current, string $option): string {
 <?php endif; ?>
 
 <script>
-// ── Row counts ───────────────────────────────────────────────────────────────
-let priceRowCount = <?= count($fd['prices']   ?? []) ?>;
+// ── Row counters ─────────────────────────────────────────────────────────────
+let priceRowCount = <?= count($fd['prices']    ?? []) ?>;
 let cnfRowCount   = <?= count($fd['cnfAddOns'] ?? []) ?>;
 
 function updateCount(badgeId, containerId) {
-  const badge = document.getElementById(badgeId);
+  var badge = document.getElementById(badgeId);
   if (!badge) return;
-  const n = document.querySelectorAll('#' + containerId + ' .data-row').length;
+  var n = document.querySelectorAll('#' + containerId + ' > .data-row').length;
   badge.textContent = n + (n === 1 ? ' row' : ' rows');
 }
 
 function deleteRow(rowId, badgeId) {
-  const el = document.getElementById(rowId);
+  var el = document.getElementById(rowId);
   if (el) el.remove();
-  const container = rowId.startsWith('price') ? 'price-rows-container' : 'cnf-rows-container';
-  updateCount(badgeId, container);
+  var containerId = rowId.indexOf('price') === 0 ? 'price-rows-container' : 'cnf-rows-container';
+  updateCount(badgeId, containerId);
 }
 
 // ── Add Price Row ────────────────────────────────────────────────────────────
 function addPriceRow() {
-  const idx = priceRowCount++;
-  const container = document.getElementById('price-rows-container');
-  const n = container.querySelectorAll('.data-row').length + 1;
-  const div = document.createElement('div');
+  var idx = priceRowCount++;
+  var container = document.getElementById('price-rows-container');
+  var n = container.querySelectorAll('.data-row').length + 1;
+  var div = document.createElement('div');
   div.className = 'data-row';
   div.id = 'price-row-' + idx;
   div.innerHTML =
     '<div class="data-row-header">' +
       '<span class="data-row-label">Row ' + n + '</span>' +
-      '<button type="button" class="btn-delete-row" onclick="deleteRow(\'price-row-' + idx + '\', \'price-row-count\')">Remove</button>' +
+      '<button type="button" class="btn-delete-row" onclick="deleteRow(\'price-row-' + idx + '\',\'price-row-count\')">Remove</button>' +
     '</div>' +
     '<div class="data-row-body">' +
       '<div class="row-fields dual">' +
@@ -689,16 +842,16 @@ function addPriceRow() {
 
 // ── Add CNF Row ──────────────────────────────────────────────────────────────
 function addCnfRow() {
-  const idx = cnfRowCount++;
-  const container = document.getElementById('cnf-rows-container');
-  const n = container.querySelectorAll('.data-row').length + 1;
-  const div = document.createElement('div');
+  var idx = cnfRowCount++;
+  var container = document.getElementById('cnf-rows-container');
+  var n = container.querySelectorAll('.data-row').length + 1;
+  var div = document.createElement('div');
   div.className = 'data-row';
   div.id = 'cnf-row-' + idx;
   div.innerHTML =
     '<div class="data-row-header">' +
       '<span class="data-row-label">Row ' + n + '</span>' +
-      '<button type="button" class="btn-delete-row" onclick="deleteRow(\'cnf-row-' + idx + '\', \'cnf-row-count\')">Remove</button>' +
+      '<button type="button" class="btn-delete-row" onclick="deleteRow(\'cnf-row-' + idx + '\',\'cnf-row-count\')">Remove</button>' +
     '</div>' +
     '<div class="data-row-body">' +
       '<div class="row-fields dual">' +
@@ -722,12 +875,22 @@ function addCnfRow() {
   updateCount('cnf-row-count', 'cnf-rows-container');
 }
 
-// ── Init row counts + scroll to G after preview ──────────────────────────────
-document.addEventListener('DOMContentLoaded', function () {
+// ── Publish confirm ──────────────────────────────────────────────────────────
+var publishBtn = document.getElementById('btn-publish');
+if (publishBtn) {
+  publishBtn.addEventListener('click', function(e) {
+    if (!confirm('Publish these changes to the public price board?')) {
+      e.preventDefault();
+    }
+  });
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
   updateCount('price-row-count', 'price-rows-container');
   updateCount('cnf-row-count', 'cnf-rows-container');
-  <?php if ($isPreviewing): ?>
-  const g = document.getElementById('section-g');
+  <?php if ($isPreviewing || $isPublishing): ?>
+  var g = document.getElementById('section-g');
   if (g) g.scrollIntoView({ behavior: 'smooth', block: 'start' });
   <?php endif; ?>
 });
