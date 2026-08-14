@@ -10,4 +10,6 @@ build/
 admin/config.php
 
 # Auto-generated backup files — never commit
-data/backups/
+# .htaccess and index.html inside data/backups/ are intentionally tracked
+data/backups/*.json
+/backups/
